@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.1', '8.3']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+
+      - name: Validate PHP syntax
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Install development dependencies
+        if: matrix.php == '8.1'
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run WordPress Coding Standards
+        if: matrix.php == '8.1'
+        run: composer lint
+
+  phpunit:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: wordpress_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: mysqli
+          tools: composer
+
+      - name: Install development dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install WordPress 6.9 test environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y subversion
+          svn export --quiet https://core.svn.wordpress.org/tags/6.9/ /tmp/wordpress
+          svn export --quiet https://develop.svn.wordpress.org/tags/6.9/tests/phpunit/ /tmp/wordpress-tests-lib
+          curl -fsSL https://develop.svn.wordpress.org/tags/6.9/wp-tests-config-sample.php -o /tmp/wordpress-tests-lib/wp-tests-config.php
+          sed -i "s/youremptytestdbnamehere/wordpress_test/" /tmp/wordpress-tests-lib/wp-tests-config.php
+          sed -i "s/yourusernamehere/root/" /tmp/wordpress-tests-lib/wp-tests-config.php
+          sed -i "s/yourpasswordhere/root/" /tmp/wordpress-tests-lib/wp-tests-config.php
+          sed -i "s|dirname( __FILE__ ) . '/src/'|'/tmp/wordpress/'|" /tmp/wordpress-tests-lib/wp-tests-config.php
+
+      - name: Run PHPUnit
+        env:
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+        run: composer test
