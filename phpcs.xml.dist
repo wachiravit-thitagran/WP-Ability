@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<ruleset name="WP Ability">
+	<description>WordPress Coding Standards for WP Ability.</description>
+	<rule ref="WordPress"/>
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="wp-ability"/>
+			</property>
+		</properties>
+	</rule>
+	<file>wp-ability.php</file>
+	<file>includes</file>
+	<file>tests</file>
+</ruleset>
