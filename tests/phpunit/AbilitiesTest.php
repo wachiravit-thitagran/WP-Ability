@@ -137,6 +137,8 @@ class AbilitiesTest extends WP_UnitTestCase {
 		);
 
 		$user->add_cap( 'update_plugins', true );
+		wp_set_current_user( 0 );
+		wp_set_current_user( $user_id );
 
 		$this->assertTrue(
 			$abilities->can_install_plugin_package(
@@ -174,6 +176,8 @@ class AbilitiesTest extends WP_UnitTestCase {
 		);
 
 		$user->add_cap( 'activate_plugins', true );
+		wp_set_current_user( 0 );
+		wp_set_current_user( $user_id );
 
 		$this->assertTrue(
 			$abilities->can_install_plugin_package(
