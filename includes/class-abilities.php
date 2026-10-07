@@ -72,6 +72,7 @@ final class Abilities {
 		}
 
 		$this->register_plugin_install();
+		$this->register_plugin_install_package();
 		$this->register_plugin_update();
 		$this->register_user_create();
 		$this->register_option_update();
@@ -136,6 +137,68 @@ final class Abilities {
 				'meta'                => $this->meta( false, false, false, true ),
 			)
 		);
+	}
+
+
+	/**
+	 * Register plugin package installation ability.
+	 *
+	 * @return void
+	 */
+	private function register_plugin_install_package() {
+		wp_register_ability(
+			'wordpress/plugin-install-package',
+			array(
+				'label'               => __( 'Install WordPress Plugin Package', 'wp-ability' ),
+				'description'         => __( 'Installs or overwrites a WordPress plugin from an HTTPS ZIP package URL using the native WordPress plugin upgrader.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'package_url' => array(
+							'type'      => 'string',
+							'format'    => 'uri',
+							'minLength' => 1,
+						),
+						'overwrite'   => array(
+							'type'    => 'boolean',
+							'default' => false,
+						),
+						'activate'    => array(
+							'type'    => 'boolean',
+							'default' => false,
+						),
+					),
+					'required'             => array( 'package_url' ),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => array( $this, 'plugin_install_package' ),
+				'permission_callback' => array( $this, 'can_install_plugin_package' ),
+				'meta'                => $this->meta( false, false, false, true ),
+			)
+		);
+	}
+
+	/**
+	 * Check plugin package installation permissions.
+	 *
+	 * @param array $input Ability input.
+	 * @return bool
+	 */
+	public function can_install_plugin_package( $input = array() ) {
+		if ( ! current_user_can( 'install_plugins' ) ) {
+			return false;
+		}
+
+		if ( ! empty( $input['overwrite'] ) && ! current_user_can( 'update_plugins' ) ) {
+			return false;
+		}
+
+		if ( ! empty( $input['activate'] ) && ! current_user_can( 'activate_plugins' ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
