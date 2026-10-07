@@ -31,9 +31,6 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_registers_expected_abilities(): void {
-		do_action( 'wp_abilities_api_categories_init' );
-		do_action( 'wp_abilities_api_init' );
-
 		$names = array(
 			'wordpress/plugin-install',
 			'wordpress/plugin-update',
