@@ -15,14 +15,14 @@ The plugin remains safely inactive when the Abilities API is unavailable.
 
 | Ability | Purpose | Required capability |
 | --- | --- | --- |
-| `wordpress/plugins/install` | Install a plugin from WordPress.org, optionally activate it | `install_plugins`, plus `activate_plugins` when activation is requested |
-| `wordpress/plugins/update` | Update one installed plugin | `update_plugins` |
-| `wordpress/users/create` | Create a WordPress user and assign an editable role | `create_users`, plus `promote_users` for non-subscriber roles |
-| `wordpress/options/update` | Update a JSON-compatible WordPress option | `manage_options` |
-| `wordpress/media/delete` | Delete or permanently delete an attachment | `delete_post` for the attachment |
-| `wordpress/cron/run` | Run one existing scheduled WordPress event | `manage_options` |
-| `wordpress/cache/flush` | Flush the active WordPress object cache | `manage_options` |
-| `wordpress/database/optimize` | Optimize WordPress-managed database tables | `manage_options` |
+| `wordpress/plugin-install` | Install a plugin from WordPress.org, optionally activate it | `install_plugins`, plus `activate_plugins` when activation is requested |
+| `wordpress/plugin-update` | Update one installed plugin | `update_plugins` |
+| `wordpress/user-create` | Create a WordPress user and assign an editable role | `create_users`, plus `promote_users` for non-subscriber roles |
+| `wordpress/option-update` | Update a JSON-compatible WordPress option | `manage_options` |
+| `wordpress/media-delete` | Delete or permanently delete an attachment | `delete_post` for the attachment |
+| `wordpress/cron-run` | Run one existing scheduled WordPress event | `manage_options` |
+| `wordpress/cache-flush` | Flush the active WordPress object cache | `manage_options` |
+| `wordpress/database-optimize` | Optimize WordPress-managed database tables | `manage_options` |
 
 ## Security model
 
