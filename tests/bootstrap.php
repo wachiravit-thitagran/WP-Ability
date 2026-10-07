@@ -12,7 +12,7 @@ if ( ! $_tests_dir ) {
 }
 
 if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
-	echo "Could not find WordPress test library at {$_tests_dir}.\n";
+	printf( "Could not find WordPress test library at %s.\\n", esc_html( $_tests_dir ) );
 	exit( 1 );
 }
 
