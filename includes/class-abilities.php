@@ -109,7 +109,7 @@ final class Abilities {
 	 */
 	private function register_plugin_install() {
 		wp_register_ability(
-			'wordpress/plugins/install',
+			'wordpress/plugin-install',
 			array(
 				'label'               => __( 'Install WordPress Plugin', 'wp-ability' ),
 				'description'         => __( 'Installs a plugin from the WordPress.org plugin directory by slug and can optionally activate it after installation.', 'wp-ability' ),
@@ -238,7 +238,7 @@ final class Abilities {
 	 */
 	private function register_plugin_update() {
 		wp_register_ability(
-			'wordpress/plugins/update',
+			'wordpress/plugin-update',
 			array(
 				'label'               => __( 'Update WordPress Plugin', 'wp-ability' ),
 				'description'         => __( 'Updates one installed WordPress plugin using its registered plugin file path.', 'wp-ability' ),
@@ -315,7 +315,7 @@ final class Abilities {
 	 */
 	private function register_user_create() {
 		wp_register_ability(
-			'wordpress/users/create',
+			'wordpress/user-create',
 			array(
 				'label'               => __( 'Create WordPress User', 'wp-ability' ),
 				'description'         => __( 'Creates a WordPress user with a username, email address, optional profile fields, and an editable site role.', 'wp-ability' ),
@@ -422,7 +422,7 @@ final class Abilities {
 	 */
 	private function register_option_update() {
 		wp_register_ability(
-			'wordpress/options/update',
+			'wordpress/option-update',
 			array(
 				'label'               => __( 'Update WordPress Option', 'wp-ability' ),
 				'description'         => __( 'Updates a WordPress option with a JSON-compatible scalar, array, object, or null value without returning the previous option value.', 'wp-ability' ),
@@ -544,7 +544,7 @@ final class Abilities {
 	 */
 	private function register_media_delete() {
 		wp_register_ability(
-			'wordpress/media/delete',
+			'wordpress/media-delete',
 			array(
 				'label'               => __( 'Delete WordPress Media', 'wp-ability' ),
 				'description'         => __( 'Deletes a media attachment, optionally bypassing the Trash and permanently removing its files.', 'wp-ability' ),
@@ -618,7 +618,7 @@ final class Abilities {
 	 */
 	private function register_cron_run() {
 		wp_register_ability(
-			'wordpress/cron/run',
+			'wordpress/cron-run',
 			array(
 				'label'               => __( 'Run Scheduled WordPress Event', 'wp-ability' ),
 				'description'         => __( 'Runs one existing WordPress cron event identified by hook, timestamp, and optional arguments, then updates its schedule consistently with WordPress cron behavior.', 'wp-ability' ),
@@ -697,7 +697,7 @@ final class Abilities {
 	 */
 	private function register_cache_flush() {
 		wp_register_ability(
-			'wordpress/cache/flush',
+			'wordpress/cache-flush',
 			array(
 				'label'               => __( 'Flush WordPress Object Cache', 'wp-ability' ),
 				'description'         => __( 'Flushes the WordPress object cache using the active object-cache implementation.', 'wp-ability' ),
@@ -734,7 +734,7 @@ final class Abilities {
 	 */
 	private function register_database_optimize() {
 		wp_register_ability(
-			'wordpress/database/optimize',
+			'wordpress/database-optimize',
 			array(
 				'label'               => __( 'Optimize WordPress Database Tables', 'wp-ability' ),
 				'description'         => __( 'Runs database table optimization for selected WordPress-managed tables or all WordPress-managed tables on the current site.', 'wp-ability' ),
