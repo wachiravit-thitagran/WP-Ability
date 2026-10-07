@@ -190,6 +190,65 @@ class AbilitiesTest extends WP_UnitTestCase {
 		);
 	}
 
+
+	/**
+	 * Package ability delegates execution to the installer service.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_install_package_delegates_to_installer(): void {
+		$installer = new class() {
+			public function install( array $input ) {
+				return array(
+					'plugin_file' => 'fixture/fixture.php',
+					'installed'   => true,
+					'overwritten' => ! empty( $input['overwrite'] ),
+					'activated'   => ! empty( $input['activate'] ),
+				);
+			}
+		};
+
+		$abilities = new Abilities( $installer );
+		$result    = $abilities->plugin_install_package(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+				'overwrite'   => true,
+				'activate'    => true,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'fixture/fixture.php', $result['plugin_file'] );
+		$this->assertTrue( $result['installed'] );
+		$this->assertTrue( $result['overwritten'] );
+		$this->assertTrue( $result['activated'] );
+		$this->assertArrayNotHasKey( 'filesystem_path', $result );
+	}
+
+	/**
+	 * Package ability propagates installer errors unchanged.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_install_package_propagates_installer_error(): void {
+		$installer = new class() {
+			public function install( array $input ) {
+				unset( $input );
+				return new WP_Error( 'fixture_error', 'Fixture failure.' );
+			}
+		};
+
+		$abilities = new Abilities( $installer );
+		$result    = $abilities->plugin_install_package(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'fixture_error', $result->get_error_code() );
+	}
+
 	/**
 	 * Option updates require manage_options.
 	 *
