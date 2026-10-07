@@ -115,7 +115,10 @@ final class Core_Abilities {
 		return array(
 			'type'                 => 'object',
 			'properties'           => array(
-				'plugin_file' => array( 'type' => 'string', 'minLength' => 1 ),
+				'plugin_file' => array(
+					'type' => 'string',
+					'minLength' => 1,
+				),
 			),
 			'required'             => array( 'plugin_file' ),
 			'additionalProperties' => false,
@@ -156,7 +159,10 @@ final class Core_Abilities {
 			return new \WP_Error( 'wp_ability_plugin_not_found', __( 'Plugin not found.', 'wp-ability' ) );
 		}
 		$result = activate_plugin( $file );
-		return is_wp_error( $result ) ? $result : array( 'plugin_file' => $file, 'active' => true );
+		return is_wp_error( $result ) ? $result : array(
+			'plugin_file' => $file,
+			'active' => true,
+		);
 	}
 
 	public function plugin_deactivate( array $input ) {
@@ -166,7 +172,10 @@ final class Core_Abilities {
 			return new \WP_Error( 'wp_ability_plugin_not_found', __( 'Plugin not found.', 'wp-ability' ) );
 		}
 		deactivate_plugins( $file );
-		return array( 'plugin_file' => $file, 'active' => false );
+		return array(
+			'plugin_file' => $file,
+			'active' => false,
+		);
 	}
 
 	public function plugin_delete( array $input ) {
@@ -179,7 +188,10 @@ final class Core_Abilities {
 			return new \WP_Error( 'wp_ability_plugin_active', __( 'Deactivate the plugin before deleting it.', 'wp-ability' ) );
 		}
 		$result = delete_plugins( array( $file ) );
-		return is_wp_error( $result ) ? $result : array( 'plugin_file' => $file, 'deleted' => true );
+		return is_wp_error( $result ) ? $result : array(
+			'plugin_file' => $file,
+			'deleted' => true,
+		);
 	}
 
 	/**
@@ -191,7 +203,12 @@ final class Core_Abilities {
 		$this->register( 'wordpress/theme-list', __( 'List WordPress Themes', 'wp-ability' ), __( 'Lists installed themes and the currently active stylesheet.', 'wp-ability' ), $this->empty_schema(), array( $this, 'theme_list' ), array( $this, 'can_switch_themes' ), true, false, true );
 		$slug_schema = array(
 			'type' => 'object',
-			'properties' => array( 'stylesheet' => array( 'type' => 'string', 'minLength' => 1 ) ),
+			'properties' => array(
+				'stylesheet' => array(
+					'type' => 'string',
+					'minLength' => 1,
+				),
+			),
 			'required' => array( 'stylesheet' ),
 			'additionalProperties' => false,
 		);
@@ -228,7 +245,10 @@ final class Core_Abilities {
 			return new \WP_Error( 'wp_ability_theme_not_found', __( 'Theme not found or invalid.', 'wp-ability' ) );
 		}
 		switch_theme( $stylesheet );
-		return array( 'stylesheet' => $stylesheet, 'active' => true );
+		return array(
+			'stylesheet' => $stylesheet,
+			'active' => true,
+		);
 	}
 
 	public function theme_delete( array $input ) {
@@ -242,7 +262,10 @@ final class Core_Abilities {
 			return new \WP_Error( 'wp_ability_theme_not_found', __( 'Theme not found.', 'wp-ability' ) );
 		}
 		$result = delete_theme( $stylesheet );
-		return is_wp_error( $result ) ? $result : array( 'stylesheet' => $stylesheet, 'deleted' => true );
+		return is_wp_error( $result ) ? $result : array(
+			'stylesheet' => $stylesheet,
+			'deleted' => true,
+		);
 	}
 
 	/**
@@ -256,35 +279,68 @@ final class Core_Abilities {
 			'properties' => array(
 				'role' => array( 'type' => 'string' ),
 				'search' => array( 'type' => 'string' ),
-				'number' => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ),
-				'offset' => array( 'type' => 'integer', 'minimum' => 0, 'default' => 0 ),
+				'number' => array(
+					'type' => 'integer',
+					'minimum' => 1,
+					'maximum' => 100,
+					'default' => 20,
+				),
+				'offset' => array(
+					'type' => 'integer',
+					'minimum' => 0,
+					'default' => 0,
+				),
 			),
 			'additionalProperties' => false,
 		);
 		$id_schema = array(
 			'type' => 'object',
-			'properties' => array( 'user_id' => array( 'type' => 'integer', 'minimum' => 1 ) ),
+			'properties' => array(
+				'user_id' => array(
+					'type' => 'integer',
+					'minimum' => 1,
+				),
+			),
 			'required' => array( 'user_id' ),
 			'additionalProperties' => false,
 		);
 		$this->register( 'wordpress/user-list', __( 'List WordPress Users', 'wp-ability' ), __( 'Lists WordPress users visible to the current user.', 'wp-ability' ), $list_schema, array( $this, 'user_list' ), array( $this, 'can_list_users' ), true, false, true );
 		$this->register( 'wordpress/user-get', __( 'Get WordPress User', 'wp-ability' ), __( 'Returns a WordPress user profile without password or authentication secrets.', 'wp-ability' ), $id_schema, array( $this, 'user_get' ), array( $this, 'can_list_users' ), true, false, true );
 		$update_schema = $id_schema;
-		$update_schema['properties']['email'] = array( 'type' => 'string', 'format' => 'email' );
+		$update_schema['properties']['email'] = array(
+			'type' => 'string',
+			'format' => 'email',
+		);
 		$update_schema['properties']['display_name'] = array( 'type' => 'string' );
 		$update_schema['properties']['first_name'] = array( 'type' => 'string' );
 		$update_schema['properties']['last_name'] = array( 'type' => 'string' );
 		$update_schema['properties']['role'] = array( 'type' => 'string' );
 		$this->register( 'wordpress/user-update', __( 'Update WordPress User', 'wp-ability' ), __( 'Updates editable WordPress user profile fields and optionally role.', 'wp-ability' ), $update_schema, array( $this, 'user_update' ), array( $this, 'can_edit_user_input' ), false, false, true );
-		$this->register( 'wordpress/user-delete', __( 'Delete WordPress User', 'wp-ability' ), __( 'Deletes a WordPress user and optionally reassigns authored content.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'user_id' => array( 'type' => 'integer', 'minimum' => 1 ),
-				'reassign' => array( 'type' => array( 'integer', 'null' ), 'minimum' => 1 ),
+		$this->register(
+			'wordpress/user-delete',
+			__( 'Delete WordPress User', 'wp-ability' ),
+			__( 'Deletes a WordPress user and optionally reassigns authored content.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'user_id' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+					),
+					'reassign' => array(
+						'type' => array( 'integer', 'null' ),
+						'minimum' => 1,
+					),
+				),
+				'required' => array( 'user_id' ),
+				'additionalProperties' => false,
 			),
-			'required' => array( 'user_id' ),
-			'additionalProperties' => false,
-		), array( $this, 'user_delete' ), array( $this, 'can_delete_user_input' ), false, true, true );
+			array( $this, 'user_delete' ),
+			array( $this, 'can_delete_user_input' ),
+			false,
+			true,
+			true
+		);
 	}
 
 	public function can_list_users() {
@@ -376,7 +432,11 @@ final class Core_Abilities {
 		}
 		$reassign = isset( $input['reassign'] ) && null !== $input['reassign'] ? (int) $input['reassign'] : null;
 		$result   = wp_delete_user( $id, $reassign );
-		return $result ? array( 'user_id' => $id, 'deleted' => true, 'reassigned_to' => $reassign ) : new \WP_Error( 'wp_ability_user_delete_failed', __( 'User could not be deleted.', 'wp-ability' ) );
+		return $result ? array(
+			'user_id' => $id,
+			'deleted' => true,
+			'reassigned_to' => $reassign,
+		) : new \WP_Error( 'wp_ability_user_delete_failed', __( 'User could not be deleted.', 'wp-ability' ) );
 	}
 
 	/**
@@ -385,20 +445,50 @@ final class Core_Abilities {
 	 * @return void
 	 */
 	private function register_posts() {
-		$this->register( 'wordpress/post-list', __( 'List WordPress Posts', 'wp-ability' ), __( 'Lists posts for a requested public or registered post type.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'post_type' => array( 'type' => 'string', 'default' => 'post' ),
-				'post_status' => array( 'type' => 'string', 'default' => 'any' ),
-				'search' => array( 'type' => 'string' ),
-				'per_page' => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ),
-				'page' => array( 'type' => 'integer', 'minimum' => 1, 'default' => 1 ),
+		$this->register(
+			'wordpress/post-list',
+			__( 'List WordPress Posts', 'wp-ability' ),
+			__( 'Lists posts for a requested public or registered post type.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'post_type' => array(
+						'type' => 'string',
+						'default' => 'post',
+					),
+					'post_status' => array(
+						'type' => 'string',
+						'default' => 'any',
+					),
+					'search' => array( 'type' => 'string' ),
+					'per_page' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+						'maximum' => 100,
+						'default' => 20,
+					),
+					'page' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+						'default' => 1,
+					),
+				),
+				'additionalProperties' => false,
 			),
-			'additionalProperties' => false,
-		), array( $this, 'post_list' ), array( $this, 'can_edit_posts' ), true, false, true );
+			array( $this, 'post_list' ),
+			array( $this, 'can_edit_posts' ),
+			true,
+			false,
+			true
+		);
 		$id_schema = array(
 			'type' => 'object',
-			'properties' => array( 'post_id' => array( 'type' => 'integer', 'minimum' => 1 ) ),
+			'properties' => array(
+				'post_id' => array(
+					'type' => 'integer',
+					'minimum' => 1,
+				),
+			),
 			'required' => array( 'post_id' ),
 			'additionalProperties' => false,
 		);
@@ -406,31 +496,62 @@ final class Core_Abilities {
 		$write_schema = array(
 			'type' => 'object',
 			'properties' => array(
-				'post_type' => array( 'type' => 'string', 'default' => 'post' ),
-				'post_status' => array( 'type' => 'string', 'default' => 'draft' ),
+				'post_type' => array(
+					'type' => 'string',
+					'default' => 'post',
+				),
+				'post_status' => array(
+					'type' => 'string',
+					'default' => 'draft',
+				),
 				'post_title' => array( 'type' => 'string' ),
 				'post_content' => array( 'type' => 'string' ),
 				'post_excerpt' => array( 'type' => 'string' ),
-				'post_author' => array( 'type' => 'integer', 'minimum' => 1 ),
-				'post_parent' => array( 'type' => 'integer', 'minimum' => 0 ),
+				'post_author' => array(
+					'type' => 'integer',
+					'minimum' => 1,
+				),
+				'post_parent' => array(
+					'type' => 'integer',
+					'minimum' => 0,
+				),
 				'menu_order' => array( 'type' => 'integer' ),
 			),
 			'additionalProperties' => false,
 		);
 		$this->register( 'wordpress/post-create', __( 'Create WordPress Post', 'wp-ability' ), __( 'Creates a post, page, or registered custom post type item.', 'wp-ability' ), $write_schema, array( $this, 'post_create' ), array( $this, 'can_edit_posts' ), false, false, false );
 		$update_schema = $write_schema;
-		$update_schema['properties']['post_id'] = array( 'type' => 'integer', 'minimum' => 1 );
+		$update_schema['properties']['post_id'] = array(
+			'type' => 'integer',
+			'minimum' => 1,
+		);
 		$update_schema['required'] = array( 'post_id' );
 		$this->register( 'wordpress/post-update', __( 'Update WordPress Post', 'wp-ability' ), __( 'Updates editable fields on an existing WordPress post.', 'wp-ability' ), $update_schema, array( $this, 'post_update' ), array( $this, 'can_edit_post_input' ), false, false, true );
-		$this->register( 'wordpress/post-delete', __( 'Delete WordPress Post', 'wp-ability' ), __( 'Moves a post to Trash or permanently deletes it.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'post_id' => array( 'type' => 'integer', 'minimum' => 1 ),
-				'force' => array( 'type' => 'boolean', 'default' => false ),
+		$this->register(
+			'wordpress/post-delete',
+			__( 'Delete WordPress Post', 'wp-ability' ),
+			__( 'Moves a post to Trash or permanently deletes it.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'post_id' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+					),
+					'force' => array(
+						'type' => 'boolean',
+						'default' => false,
+					),
+				),
+				'required' => array( 'post_id' ),
+				'additionalProperties' => false,
 			),
-			'required' => array( 'post_id' ),
-			'additionalProperties' => false,
-		), array( $this, 'post_delete' ), array( $this, 'can_delete_post_input' ), false, true, true );
+			array( $this, 'post_delete' ),
+			array( $this, 'can_delete_post_input' ),
+			false,
+			true,
+			true
+		);
 	}
 
 	public function can_edit_posts() {
@@ -546,7 +667,11 @@ final class Core_Abilities {
 		$id    = (int) $input['post_id'];
 		$force = ! empty( $input['force'] );
 		$post  = wp_delete_post( $id, $force );
-		return $post ? array( 'post_id' => $id, 'deleted' => true, 'force' => $force ) : new \WP_Error( 'wp_ability_post_delete_failed', __( 'Post could not be deleted.', 'wp-ability' ) );
+		return $post ? array(
+			'post_id' => $id,
+			'deleted' => true,
+			'force' => $force,
+		) : new \WP_Error( 'wp_ability_post_delete_failed', __( 'Post could not be deleted.', 'wp-ability' ) );
 	}
 
 	/**
@@ -555,42 +680,86 @@ final class Core_Abilities {
 	 * @return void
 	 */
 	private function register_terms() {
-		$this->register( 'wordpress/term-list', __( 'List WordPress Terms', 'wp-ability' ), __( 'Lists terms from a registered taxonomy.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'taxonomy' => array( 'type' => 'string', 'minLength' => 1 ),
-				'search' => array( 'type' => 'string' ),
-				'hide_empty' => array( 'type' => 'boolean', 'default' => false ),
+		$this->register(
+			'wordpress/term-list',
+			__( 'List WordPress Terms', 'wp-ability' ),
+			__( 'Lists terms from a registered taxonomy.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'taxonomy' => array(
+						'type' => 'string',
+						'minLength' => 1,
+					),
+					'search' => array( 'type' => 'string' ),
+					'hide_empty' => array(
+						'type' => 'boolean',
+						'default' => false,
+					),
+				),
+				'required' => array( 'taxonomy' ),
+				'additionalProperties' => false,
 			),
-			'required' => array( 'taxonomy' ),
-			'additionalProperties' => false,
-		), array( $this, 'term_list' ), array( $this, 'can_manage_terms_input' ), true, false, true );
+			array( $this, 'term_list' ),
+			array( $this, 'can_manage_terms_input' ),
+			true,
+			false,
+			true
+		);
 		$write = array(
 			'type' => 'object',
 			'properties' => array(
-				'taxonomy' => array( 'type' => 'string', 'minLength' => 1 ),
-				'name' => array( 'type' => 'string', 'minLength' => 1 ),
+				'taxonomy' => array(
+					'type' => 'string',
+					'minLength' => 1,
+				),
+				'name' => array(
+					'type' => 'string',
+					'minLength' => 1,
+				),
 				'slug' => array( 'type' => 'string' ),
 				'description' => array( 'type' => 'string' ),
-				'parent' => array( 'type' => 'integer', 'minimum' => 0 ),
+				'parent' => array(
+					'type' => 'integer',
+					'minimum' => 0,
+				),
 			),
 			'required' => array( 'taxonomy', 'name' ),
 			'additionalProperties' => false,
 		);
 		$this->register( 'wordpress/term-create', __( 'Create WordPress Term', 'wp-ability' ), __( 'Creates a term in a registered taxonomy.', 'wp-ability' ), $write, array( $this, 'term_create' ), array( $this, 'can_manage_terms_input' ), false, false, false );
 		$update = $write;
-		$update['properties']['term_id'] = array( 'type' => 'integer', 'minimum' => 1 );
+		$update['properties']['term_id'] = array(
+			'type' => 'integer',
+			'minimum' => 1,
+		);
 		$update['required'] = array( 'taxonomy', 'term_id' );
 		$this->register( 'wordpress/term-update', __( 'Update WordPress Term', 'wp-ability' ), __( 'Updates a term in a registered taxonomy.', 'wp-ability' ), $update, array( $this, 'term_update' ), array( $this, 'can_manage_terms_input' ), false, false, true );
-		$this->register( 'wordpress/term-delete', __( 'Delete WordPress Term', 'wp-ability' ), __( 'Deletes a term from a registered taxonomy.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'taxonomy' => array( 'type' => 'string', 'minLength' => 1 ),
-				'term_id' => array( 'type' => 'integer', 'minimum' => 1 ),
+		$this->register(
+			'wordpress/term-delete',
+			__( 'Delete WordPress Term', 'wp-ability' ),
+			__( 'Deletes a term from a registered taxonomy.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'taxonomy' => array(
+						'type' => 'string',
+						'minLength' => 1,
+					),
+					'term_id' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+					),
+				),
+				'required' => array( 'taxonomy', 'term_id' ),
+				'additionalProperties' => false,
 			),
-			'required' => array( 'taxonomy', 'term_id' ),
-			'additionalProperties' => false,
-		), array( $this, 'term_delete' ), array( $this, 'can_manage_terms_input' ), false, true, true );
+			array( $this, 'term_delete' ),
+			array( $this, 'can_manage_terms_input' ),
+			false,
+			true,
+			true
+		);
 	}
 
 	public function can_manage_terms_input( $input = array() ) {
@@ -613,7 +782,10 @@ final class Core_Abilities {
 
 	public function term_list( array $input ) {
 		$taxonomy = sanitize_key( $input['taxonomy'] );
-		$args = array( 'taxonomy' => $taxonomy, 'hide_empty' => ! empty( $input['hide_empty'] ) );
+		$args = array(
+			'taxonomy' => $taxonomy,
+			'hide_empty' => ! empty( $input['hide_empty'] ),
+		);
 		if ( ! empty( $input['search'] ) ) {
 			$args['search'] = sanitize_text_field( $input['search'] );
 		}
@@ -662,7 +834,10 @@ final class Core_Abilities {
 
 	public function term_delete( array $input ) {
 		$result = wp_delete_term( (int) $input['term_id'], sanitize_key( $input['taxonomy'] ) );
-		return is_wp_error( $result ) ? $result : array( 'term_id' => (int) $input['term_id'], 'deleted' => (bool) $result );
+		return is_wp_error( $result ) ? $result : array(
+			'term_id' => (int) $input['term_id'],
+			'deleted' => (bool) $result,
+		);
 	}
 
 	/**
@@ -671,22 +846,56 @@ final class Core_Abilities {
 	 * @return void
 	 */
 	private function register_media() {
-		$this->register( 'wordpress/media-list', __( 'List WordPress Media', 'wp-ability' ), __( 'Lists media attachments.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'mime_type' => array( 'type' => 'string' ),
-				'search' => array( 'type' => 'string' ),
-				'per_page' => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ),
-				'page' => array( 'type' => 'integer', 'minimum' => 1, 'default' => 1 ),
+		$this->register(
+			'wordpress/media-list',
+			__( 'List WordPress Media', 'wp-ability' ),
+			__( 'Lists media attachments.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'mime_type' => array( 'type' => 'string' ),
+					'search' => array( 'type' => 'string' ),
+					'per_page' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+						'maximum' => 100,
+						'default' => 20,
+					),
+					'page' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+						'default' => 1,
+					),
+				),
+				'additionalProperties' => false,
 			),
-			'additionalProperties' => false,
-		), array( $this, 'media_list' ), array( $this, 'can_upload_files' ), true, false, true );
-		$this->register( 'wordpress/media-get', __( 'Get WordPress Media', 'wp-ability' ), __( 'Returns metadata for one media attachment.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array( 'attachment_id' => array( 'type' => 'integer', 'minimum' => 1 ) ),
-			'required' => array( 'attachment_id' ),
-			'additionalProperties' => false,
-		), array( $this, 'media_get' ), array( $this, 'can_upload_files' ), true, false, true );
+			array( $this, 'media_list' ),
+			array( $this, 'can_upload_files' ),
+			true,
+			false,
+			true
+		);
+		$this->register(
+			'wordpress/media-get',
+			__( 'Get WordPress Media', 'wp-ability' ),
+			__( 'Returns metadata for one media attachment.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'attachment_id' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+					),
+				),
+				'required' => array( 'attachment_id' ),
+				'additionalProperties' => false,
+			),
+			array( $this, 'media_get' ),
+			array( $this, 'can_upload_files' ),
+			true,
+			false,
+			true
+		);
 	}
 
 	public function can_upload_files() {
@@ -741,7 +950,12 @@ final class Core_Abilities {
 	private function register_options() {
 		$name_schema = array(
 			'type' => 'object',
-			'properties' => array( 'option_name' => array( 'type' => 'string', 'minLength' => 1 ) ),
+			'properties' => array(
+				'option_name' => array(
+					'type' => 'string',
+					'minLength' => 1,
+				),
+			),
 			'required' => array( 'option_name' ),
 			'additionalProperties' => false,
 		);
@@ -763,7 +977,11 @@ final class Core_Abilities {
 			return new \WP_Error( 'wp_ability_protected_option', __( 'This option is protected and must be managed through a dedicated ability.', 'wp-ability' ) );
 		}
 		$value = get_option( $name, null );
-		return array( 'option_name' => $name, 'exists' => null !== $value, 'value' => $value );
+		return array(
+			'option_name' => $name,
+			'exists' => null !== $value,
+			'value' => $value,
+		);
 	}
 
 	public function option_delete( array $input ) {
@@ -771,7 +989,10 @@ final class Core_Abilities {
 		if ( in_array( $name, $this->protected_options(), true ) ) {
 			return new \WP_Error( 'wp_ability_protected_option', __( 'This option is protected and must be managed through a dedicated ability.', 'wp-ability' ) );
 		}
-		return array( 'option_name' => $name, 'deleted' => (bool) delete_option( $name ) );
+		return array(
+			'option_name' => $name,
+			'deleted' => (bool) delete_option( $name ),
+		);
 	}
 
 	/**
@@ -781,27 +1002,65 @@ final class Core_Abilities {
 	 */
 	private function register_cron() {
 		$this->register( 'wordpress/cron-list', __( 'List WordPress Cron Events', 'wp-ability' ), __( 'Lists scheduled WordPress cron events.', 'wp-ability' ), $this->empty_schema(), array( $this, 'cron_list' ), array( $this, 'can_manage_options' ), true, false, true );
-		$this->register( 'wordpress/cron-schedule', __( 'Schedule WordPress Cron Event', 'wp-ability' ), __( 'Schedules a one-time or recurring WordPress cron event.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'hook' => array( 'type' => 'string', 'minLength' => 1 ),
-				'timestamp' => array( 'type' => 'integer', 'minimum' => 1 ),
-				'recurrence' => array( 'type' => array( 'string', 'null' ) ),
-				'args' => array( 'type' => 'array', 'default' => array() ),
+		$this->register(
+			'wordpress/cron-schedule',
+			__( 'Schedule WordPress Cron Event', 'wp-ability' ),
+			__( 'Schedules a one-time or recurring WordPress cron event.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'hook' => array(
+						'type' => 'string',
+						'minLength' => 1,
+					),
+					'timestamp' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+					),
+					'recurrence' => array( 'type' => array( 'string', 'null' ) ),
+					'args' => array(
+						'type' => 'array',
+						'default' => array(),
+					),
+				),
+				'required' => array( 'hook', 'timestamp' ),
+				'additionalProperties' => false,
 			),
-			'required' => array( 'hook', 'timestamp' ),
-			'additionalProperties' => false,
-		), array( $this, 'cron_schedule' ), array( $this, 'can_manage_options' ), false, false, false );
-		$this->register( 'wordpress/cron-delete', __( 'Delete WordPress Cron Event', 'wp-ability' ), __( 'Unschedules one WordPress cron event.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'hook' => array( 'type' => 'string', 'minLength' => 1 ),
-				'timestamp' => array( 'type' => 'integer', 'minimum' => 1 ),
-				'args' => array( 'type' => 'array', 'default' => array() ),
+			array( $this, 'cron_schedule' ),
+			array( $this, 'can_manage_options' ),
+			false,
+			false,
+			false
+		);
+		$this->register(
+			'wordpress/cron-delete',
+			__( 'Delete WordPress Cron Event', 'wp-ability' ),
+			__( 'Unschedules one WordPress cron event.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'hook' => array(
+						'type' => 'string',
+						'minLength' => 1,
+					),
+					'timestamp' => array(
+						'type' => 'integer',
+						'minimum' => 1,
+					),
+					'args' => array(
+						'type' => 'array',
+						'default' => array(),
+					),
+				),
+				'required' => array( 'hook', 'timestamp' ),
+				'additionalProperties' => false,
 			),
-			'required' => array( 'hook', 'timestamp' ),
-			'additionalProperties' => false,
-		), array( $this, 'cron_delete' ), array( $this, 'can_manage_options' ), false, true, true );
+			array( $this, 'cron_delete' ),
+			array( $this, 'can_manage_options' ),
+			false,
+			true,
+			true
+		);
 	}
 
 	public function cron_list() {
@@ -833,7 +1092,12 @@ final class Core_Abilities {
 		} else {
 			$result = wp_schedule_single_event( $timestamp, $hook, $args, true );
 		}
-		return is_wp_error( $result ) ? $result : array( 'hook' => $hook, 'timestamp' => $timestamp, 'recurrence' => $recurrence, 'scheduled' => (bool) $result );
+		return is_wp_error( $result ) ? $result : array(
+			'hook' => $hook,
+			'timestamp' => $timestamp,
+			'recurrence' => $recurrence,
+			'scheduled' => (bool) $result,
+		);
 	}
 
 	public function cron_delete( array $input ) {
@@ -841,7 +1105,11 @@ final class Core_Abilities {
 		$timestamp = (int) $input['timestamp'];
 		$args      = isset( $input['args'] ) && is_array( $input['args'] ) ? $input['args'] : array();
 		$result    = wp_unschedule_event( $timestamp, $hook, $args, true );
-		return is_wp_error( $result ) ? $result : array( 'hook' => $hook, 'timestamp' => $timestamp, 'deleted' => (bool) $result );
+		return is_wp_error( $result ) ? $result : array(
+			'hook' => $hook,
+			'timestamp' => $timestamp,
+			'deleted' => (bool) $result,
+		);
 	}
 
 	/**
@@ -852,40 +1120,73 @@ final class Core_Abilities {
 	private function register_transients() {
 		$name_schema = array(
 			'type' => 'object',
-			'properties' => array( 'name' => array( 'type' => 'string', 'minLength' => 1 ) ),
+			'properties' => array(
+				'name' => array(
+					'type' => 'string',
+					'minLength' => 1,
+				),
+			),
 			'required' => array( 'name' ),
 			'additionalProperties' => false,
 		);
 		$this->register( 'wordpress/transient-get', __( 'Get WordPress Transient', 'wp-ability' ), __( 'Gets one site-local WordPress transient.', 'wp-ability' ), $name_schema, array( $this, 'transient_get' ), array( $this, 'can_manage_options' ), true, false, true );
-		$this->register( 'wordpress/transient-set', __( 'Set WordPress Transient', 'wp-ability' ), __( 'Sets one site-local WordPress transient with optional expiration.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array(
-				'name' => array( 'type' => 'string', 'minLength' => 1 ),
-				'value' => array(),
-				'expiration' => array( 'type' => 'integer', 'minimum' => 0, 'default' => 0 ),
+		$this->register(
+			'wordpress/transient-set',
+			__( 'Set WordPress Transient', 'wp-ability' ),
+			__( 'Sets one site-local WordPress transient with optional expiration.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'name' => array(
+						'type' => 'string',
+						'minLength' => 1,
+					),
+					'value' => array(),
+					'expiration' => array(
+						'type' => 'integer',
+						'minimum' => 0,
+						'default' => 0,
+					),
+				),
+				'required' => array( 'name', 'value' ),
+				'additionalProperties' => false,
 			),
-			'required' => array( 'name', 'value' ),
-			'additionalProperties' => false,
-		), array( $this, 'transient_set' ), array( $this, 'can_manage_options' ), false, false, true );
+			array( $this, 'transient_set' ),
+			array( $this, 'can_manage_options' ),
+			false,
+			false,
+			true
+		);
 		$this->register( 'wordpress/transient-delete', __( 'Delete WordPress Transient', 'wp-ability' ), __( 'Deletes one site-local WordPress transient.', 'wp-ability' ), $name_schema, array( $this, 'transient_delete' ), array( $this, 'can_manage_options' ), false, true, true );
 	}
 
 	public function transient_get( array $input ) {
 		$name  = sanitize_key( $input['name'] );
 		$value = get_transient( $name );
-		return array( 'name' => $name, 'exists' => false !== $value, 'value' => false === $value ? null : $value );
+		return array(
+			'name' => $name,
+			'exists' => false !== $value,
+			'value' => false === $value ? null : $value,
+		);
 	}
 
 	public function transient_set( array $input ) {
 		$name       = sanitize_key( $input['name'] );
 		$expiration = isset( $input['expiration'] ) ? max( 0, (int) $input['expiration'] ) : 0;
 		$result     = set_transient( $name, $input['value'], $expiration );
-		return array( 'name' => $name, 'set' => (bool) $result, 'expiration' => $expiration );
+		return array(
+			'name' => $name,
+			'set' => (bool) $result,
+			'expiration' => $expiration,
+		);
 	}
 
 	public function transient_delete( array $input ) {
 		$name = sanitize_key( $input['name'] );
-		return array( 'name' => $name, 'deleted' => (bool) delete_transient( $name ) );
+		return array(
+			'name' => $name,
+			'deleted' => (bool) delete_transient( $name ),
+		);
 	}
 
 	/**
@@ -894,11 +1195,26 @@ final class Core_Abilities {
 	 * @return void
 	 */
 	private function register_maintenance() {
-		$this->register( 'wordpress/rewrite-flush', __( 'Flush WordPress Rewrite Rules', 'wp-ability' ), __( 'Regenerates WordPress rewrite rules.', 'wp-ability' ), array(
-			'type' => 'object',
-			'properties' => array( 'hard' => array( 'type' => 'boolean', 'default' => true ) ),
-			'additionalProperties' => false,
-		), array( $this, 'rewrite_flush' ), array( $this, 'can_manage_options' ), false, false, true );
+		$this->register(
+			'wordpress/rewrite-flush',
+			__( 'Flush WordPress Rewrite Rules', 'wp-ability' ),
+			__( 'Regenerates WordPress rewrite rules.', 'wp-ability' ),
+			array(
+				'type' => 'object',
+				'properties' => array(
+					'hard' => array(
+						'type' => 'boolean',
+						'default' => true,
+					),
+				),
+				'additionalProperties' => false,
+			),
+			array( $this, 'rewrite_flush' ),
+			array( $this, 'can_manage_options' ),
+			false,
+			false,
+			true
+		);
 		$this->register( 'wordpress/update-check', __( 'Check WordPress Updates', 'wp-ability' ), __( 'Refreshes WordPress core, plugin, and theme update information.', 'wp-ability' ), $this->empty_schema(), array( $this, 'update_check' ), array( $this, 'can_update_core' ), false, false, true, true );
 	}
 
@@ -909,7 +1225,10 @@ final class Core_Abilities {
 	public function rewrite_flush( array $input ) {
 		$hard = ! array_key_exists( 'hard', $input ) || ! empty( $input['hard'] );
 		flush_rewrite_rules( $hard );
-		return array( 'flushed' => true, 'hard' => $hard );
+		return array(
+			'flushed' => true,
+			'hard' => $hard,
+		);
 	}
 
 	public function update_check() {
