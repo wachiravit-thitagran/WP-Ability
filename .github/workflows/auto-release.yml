@@ -1,0 +1,109 @@
+name: Auto Release
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^ \* Version:[[:space:]]*//p' wp-ability.php | head -n 1 | tr -d '\r')"
+
+          if ! printf '%s' "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Plugin Version header is not a release semver: $version"
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Stop when this version is already released
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG already exists; no duplicate release will be created."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build installable ZIP
+        if: steps.existing.outputs.exists != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf build dist
+          mkdir -p build/wp-ability dist
+
+          cp wp-ability.php build/wp-ability/
+          cp -R includes build/wp-ability/
+          cp README.md build/wp-ability/
+
+          if [ -f LICENSE ]; then
+            cp LICENSE build/wp-ability/
+          fi
+
+          (
+            cd build
+            zip -qr "../dist/wp-ability-${VERSION}.zip" wp-ability
+          )
+
+          sha256sum "dist/wp-ability-${VERSION}.zip" > "dist/wp-ability-${VERSION}.zip.sha256"
+
+          unzip -Z1 "dist/wp-ability-${VERSION}.zip" | grep -qx 'wp-ability/wp-ability.php'
+          unzip -Z1 "dist/wp-ability-${VERSION}.zip" | grep -qx 'wp-ability/includes/class-abilities.php'
+
+          if unzip -Z1 "dist/wp-ability-${VERSION}.zip" | grep -Eq '(^|/)(\.git|\.github|tests|vendor)/'; then
+            echo "::error::Development files were included in the installable ZIP."
+            exit 1
+          fi
+
+      - name: Upload workflow artifact
+        if: steps.existing.outputs.exists != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-ability-${{ steps.version.outputs.version }}
+          path: |
+            dist/wp-ability-${{ steps.version.outputs.version }}.zip
+            dist/wp-ability-${{ steps.version.outputs.version }}.zip.sha256
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: steps.existing.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh release create "$TAG"             "dist/wp-ability-${VERSION}.zip"             "dist/wp-ability-${VERSION}.zip.sha256"             --target "$RELEASE_SHA"             --title "WP Ability ${VERSION}"             --generate-notes
