@@ -6,6 +6,7 @@
  */
 
 use WP_Ability\Abilities;
+use WP_Ability\Core_Abilities;
 
 /**
  * Test the WordPress administration abilities.
@@ -34,12 +35,44 @@ class AbilitiesTest extends WP_UnitTestCase {
 		$names = array(
 			'wordpress/plugin-install',
 			'wordpress/plugin-update',
+			'wordpress/plugin-list',
+			'wordpress/plugin-activate',
+			'wordpress/plugin-deactivate',
+			'wordpress/plugin-delete',
+			'wordpress/theme-list',
+			'wordpress/theme-activate',
+			'wordpress/theme-delete',
 			'wordpress/user-create',
-			'wordpress/option-update',
+			'wordpress/user-list',
+			'wordpress/user-get',
+			'wordpress/user-update',
+			'wordpress/user-delete',
+			'wordpress/post-list',
+			'wordpress/post-get',
+			'wordpress/post-create',
+			'wordpress/post-update',
+			'wordpress/post-delete',
+			'wordpress/term-list',
+			'wordpress/term-create',
+			'wordpress/term-update',
+			'wordpress/term-delete',
+			'wordpress/media-list',
+			'wordpress/media-get',
 			'wordpress/media-delete',
+			'wordpress/option-get',
+			'wordpress/option-update',
+			'wordpress/option-delete',
+			'wordpress/cron-list',
+			'wordpress/cron-schedule',
 			'wordpress/cron-run',
+			'wordpress/cron-delete',
+			'wordpress/transient-get',
+			'wordpress/transient-set',
+			'wordpress/transient-delete',
 			'wordpress/cache-flush',
 			'wordpress/database-optimize',
+			'wordpress/rewrite-flush',
+			'wordpress/update-check',
 		);
 
 		foreach ( $names as $name ) {
@@ -62,6 +95,29 @@ class AbilitiesTest extends WP_UnitTestCase {
 		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $administrator );
 		$this->assertTrue( $abilities->can_manage_options() );
+	}
+
+	/**
+	 * Expanded Core abilities preserve capability checks.
+	 *
+	 * @return void
+	 */
+	public function test_core_abilities_require_expected_capabilities(): void {
+		$core = new Core_Abilities();
+
+		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		wp_set_current_user( $subscriber );
+		$this->assertFalse( $core->can_activate_plugins() );
+		$this->assertFalse( $core->can_switch_themes() );
+		$this->assertFalse( $core->can_list_users() );
+		$this->assertFalse( $core->can_manage_options() );
+
+		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $administrator );
+		$this->assertTrue( $core->can_activate_plugins() );
+		$this->assertTrue( $core->can_switch_themes() );
+		$this->assertTrue( $core->can_list_users() );
+		$this->assertTrue( $core->can_manage_options() );
 	}
 
 	/**
