@@ -123,7 +123,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 		$user      = new WP_User( $user_id );
 
 		$user->add_cap( 'install_plugins' );
-		$user->remove_cap( 'update_plugins' );
+		$user->add_cap( 'update_plugins', false );
 		wp_set_current_user( $user_id );
 
 		$this->assertFalse(
@@ -136,7 +136,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 			)
 		);
 
-		$user->add_cap( 'update_plugins' );
+		$user->add_cap( 'update_plugins', true );
 
 		$this->assertTrue(
 			$abilities->can_install_plugin_package(
@@ -160,7 +160,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 		$user      = new WP_User( $user_id );
 
 		$user->add_cap( 'install_plugins' );
-		$user->remove_cap( 'activate_plugins' );
+		$user->add_cap( 'activate_plugins', false );
 		wp_set_current_user( $user_id );
 
 		$this->assertFalse(
@@ -173,7 +173,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 			)
 		);
 
-		$user->add_cap( 'activate_plugins' );
+		$user->add_cap( 'activate_plugins', true );
 
 		$this->assertTrue(
 			$abilities->can_install_plugin_package(
