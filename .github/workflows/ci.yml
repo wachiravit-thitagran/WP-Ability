@@ -142,3 +142,24 @@ jobs:
           REPO_ROOT: ${{ github.workspace }}
         run: bash tests/e2e/run.sh
 
+
+
+  wpcs_autofix_preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+      - name: Install development dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Apply PHPCBF to legacy core abilities file
+        run: vendor/bin/phpcbf -n --standard=phpcs.xml.dist includes/class-core-abilities.php || true
+      - name: Emit formatted file
+        run: |
+          echo 'WPCS_AUTOFIX_BASE64_BEGIN'
+          base64 -w0 includes/class-core-abilities.php
+          echo
+          echo 'WPCS_AUTOFIX_BASE64_END'
