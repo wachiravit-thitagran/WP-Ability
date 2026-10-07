@@ -15,9 +15,19 @@ defined( 'ABSPATH' ) || exit;
 final class Abilities {
 
 	/**
-	 * Constructor.
+	 * Plugin package installer service.
+	 *
+	 * @var object|null
 	 */
-	public function __construct() {
+	private $plugin_package_installer;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param object|null $plugin_package_installer Optional package installer service.
+	 */
+	public function __construct( $plugin_package_installer = null ) {
+		$this->plugin_package_installer = $plugin_package_installer;
 		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_category' ) );
 		add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
 		add_action( 'admin_notices', array( $this, 'maybe_show_dependency_notice' ) );
@@ -203,18 +213,17 @@ final class Abilities {
 
 
 	/**
-	 * Temporary package install callback until installer delegation is added.
+	 * Install or overwrite a plugin from an HTTPS package URL.
 	 *
 	 * @param array $input Ability input.
-	 * @return \WP_Error
+	 * @return array|\WP_Error
 	 */
 	public function plugin_install_package( array $input ) {
-		unset( $input );
+		if ( ! $this->plugin_package_installer ) {
+			$this->plugin_package_installer = new Plugin_Package_Installer();
+		}
 
-		return new \WP_Error(
-			'wp_ability_plugin_package_not_implemented',
-			__( 'Plugin package installation is not implemented yet.', 'wp-ability' )
-		);
+		return $this->plugin_package_installer->install( $input );
 	}
 
 	/**
