@@ -1,0 +1,124 @@
+name: Build and Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to publish, for example v0.1.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build installable plugin ZIP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Resolve release tag
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Validate tag and plugin version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.release.outputs.tag }}"
+          VERSION="${TAG#v}"
+
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$TAG" ]; then
+            echo "::error::Release tag must start with v, for example v0.1.0"
+            exit 1
+          fi
+
+          PLUGIN_VERSION="$(sed -n 's/^ \* Version:[[:space:]]*//p' wp-ability.php | head -n 1 | tr -d '\r')"
+
+          if [ "$PLUGIN_VERSION" != "$VERSION" ]; then
+            echo "::error::Plugin header version ($PLUGIN_VERSION) does not match tag ($TAG)."
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_ENV"
+          echo "tag=$TAG" >> "$GITHUB_ENV"
+
+      - name: Build WordPress plugin package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf build dist
+          mkdir -p build/wp-ability dist
+
+          cp wp-ability.php build/wp-ability/
+          cp -R includes build/wp-ability/
+          cp README.md build/wp-ability/
+
+          if [ -f LICENSE ] || [ -f LICENSE.txt ] || [ -f license.txt ]; then
+            for file in LICENSE LICENSE.txt license.txt; do
+              if [ -f "$file" ]; then
+                cp "$file" build/wp-ability/
+              fi
+            done
+          fi
+
+          (
+            cd build
+            zip -r "../dist/wp-ability-${version}.zip" wp-ability
+          )
+
+          sha256sum "dist/wp-ability-${version}.zip" > "dist/wp-ability-${version}.zip.sha256"
+
+      - name: Verify package layout
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          unzip -l "dist/wp-ability-${version}.zip"
+
+          unzip -Z1 "dist/wp-ability-${version}.zip" | grep -qx 'wp-ability/wp-ability.php'
+          unzip -Z1 "dist/wp-ability-${version}.zip" | grep -qx 'wp-ability/includes/class-abilities.php'
+
+          if unzip -Z1 "dist/wp-ability-${version}.zip" | grep -Eq '(^|/)(\.git|\.github|tests|vendor)/'; then
+            echo "::error::Development files were included in the installable ZIP."
+            exit 1
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-ability-${{ env.version }}
+          path: |
+            dist/wp-ability-${{ env.version }}.zip
+            dist/wp-ability-${{ env.version }}.zip.sha256
+          if-no-files-found: error
+
+      - name: Create GitHub Release and attach plugin ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag"               "dist/wp-ability-${version}.zip"               "dist/wp-ability-${version}.zip.sha256"               --clobber
+          else
+            gh release create "$tag"               "dist/wp-ability-${version}.zip"               "dist/wp-ability-${version}.zip.sha256"               --title "WP Ability ${version}"               --generate-notes               --verify-tag
+          fi
