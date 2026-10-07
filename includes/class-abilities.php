@@ -84,17 +84,17 @@ final class Abilities {
 	/**
 	 * Metadata shared by abilities.
 	 *
-	 * @param bool $readonly    Whether the operation is read-only.
+	 * @param bool $is_readonly    Whether the operation is read-only.
 	 * @param bool $destructive Whether the operation can delete or irreversibly alter data.
 	 * @param bool $idempotent  Whether repeating the same request is expected to be safe.
 	 * @param bool $open_world  Whether the operation may interact with external systems.
 	 * @return array
 	 */
-	private function meta( $readonly, $destructive, $idempotent, $open_world = false ) {
+	private function meta( $is_readonly, $destructive, $idempotent, $open_world = false ) {
 		return array(
 			'public'      => true,
 			'annotations' => array(
-				'readonly'      => (bool) $readonly,
+				'readonly'      => (bool) $is_readonly,
 				'destructive'   => (bool) $destructive,
 				'idempotent'    => (bool) $idempotent,
 				'openWorldHint' => (bool) $open_world,
@@ -323,14 +323,23 @@ final class Abilities {
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'username'     => array( 'type' => 'string', 'minLength' => 1 ),
-						'email'        => array( 'type' => 'string', 'format' => 'email' ),
+						'username'     => array(
+							'type'      => 'string',
+							'minLength' => 1,
+						),
+						'email'        => array(
+							'type'   => 'string',
+							'format' => 'email',
+						),
 						'password'     => array(
 							'type'        => 'string',
 							'minLength'   => 8,
 							'description' => __( 'Optional password. When omitted, WordPress generates a strong password. Passwords are never returned by this ability.', 'wp-ability' ),
 						),
-						'role'         => array( 'type' => 'string', 'default' => 'subscriber' ),
+						'role'         => array(
+							'type'    => 'string',
+							'default' => 'subscriber',
+						),
 						'display_name' => array( 'type' => 'string' ),
 						'first_name'   => array( 'type' => 'string' ),
 						'last_name'    => array( 'type' => 'string' ),
@@ -421,7 +430,10 @@ final class Abilities {
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'option_name' => array( 'type' => 'string', 'minLength' => 1 ),
+						'option_name' => array(
+							'type'      => 'string',
+							'minLength' => 1,
+						),
 						'value'       => array(),
 						'autoload'    => array(
 							'type'        => array( 'boolean', 'null' ),
@@ -540,8 +552,14 @@ final class Abilities {
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'attachment_id' => array( 'type' => 'integer', 'minimum' => 1 ),
-						'force'         => array( 'type' => 'boolean', 'default' => false ),
+						'attachment_id' => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+						),
+						'force'         => array(
+							'type'    => 'boolean',
+							'default' => false,
+						),
 					),
 					'required'             => array( 'attachment_id' ),
 					'additionalProperties' => false,
@@ -608,9 +626,18 @@ final class Abilities {
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'hook'      => array( 'type' => 'string', 'minLength' => 1 ),
-						'timestamp' => array( 'type' => 'integer', 'minimum' => 1 ),
-						'args'      => array( 'type' => 'array', 'default' => array() ),
+						'hook'      => array(
+							'type'      => 'string',
+							'minLength' => 1,
+						),
+						'timestamp' => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+						),
+						'args'      => array(
+							'type'    => 'array',
+							'default' => array(),
+						),
 					),
 					'required'             => array( 'hook', 'timestamp' ),
 					'additionalProperties' => false,
