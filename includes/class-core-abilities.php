@@ -125,14 +125,29 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_activate_plugins() {
 		return current_user_can( 'activate_plugins' );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_delete_plugins() {
 		return current_user_can( 'delete_plugins' );
 	}
 
+	/**
+	 * List installed WordPress plugins.
+	 *
+	 * @return array
+	 */
 	public function plugin_list() {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$updates = get_site_transient( 'update_plugins' );
@@ -152,6 +167,12 @@ final class Core_Abilities {
 		return array( 'plugins' => $result );
 	}
 
+	/**
+	 * Execute the plugin activate ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function plugin_activate( array $input ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$file = plugin_basename( sanitize_text_field( $input['plugin_file'] ) );
@@ -165,6 +186,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the plugin deactivate ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function plugin_deactivate( array $input ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$file = plugin_basename( sanitize_text_field( $input['plugin_file'] ) );
@@ -178,6 +205,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the plugin delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function plugin_delete( array $input ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$file = plugin_basename( sanitize_text_field( $input['plugin_file'] ) );
@@ -216,14 +249,29 @@ final class Core_Abilities {
 		$this->register( 'wordpress/theme-delete', __( 'Delete WordPress Theme', 'wp-ability' ), __( 'Deletes an installed inactive theme.', 'wp-ability' ), $slug_schema, array( $this, 'theme_delete' ), array( $this, 'can_delete_themes' ), false, true, true );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_switch_themes() {
 		return current_user_can( 'switch_themes' );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_delete_themes() {
 		return current_user_can( 'delete_themes' );
 	}
 
+	/**
+	 * List installed WordPress themes.
+	 *
+	 * @return array
+	 */
 	public function theme_list() {
 		$current = get_stylesheet();
 		$result  = array();
@@ -238,6 +286,12 @@ final class Core_Abilities {
 		return array( 'themes' => $result );
 	}
 
+	/**
+	 * Execute the theme activate ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function theme_activate( array $input ) {
 		$stylesheet = sanitize_key( $input['stylesheet'] );
 		$theme      = wp_get_theme( $stylesheet );
@@ -251,6 +305,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the theme delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function theme_delete( array $input ) {
 		require_once ABSPATH . 'wp-admin/includes/theme.php';
 		$stylesheet = sanitize_key( $input['stylesheet'] );
@@ -343,20 +403,43 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_list_users() {
 		return current_user_can( 'list_users' );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return bool
+	 */
 	public function can_edit_user_input( $input = array() ) {
 		$id = isset( $input['user_id'] ) ? (int) $input['user_id'] : 0;
 		return $id > 0 && current_user_can( 'edit_user', $id );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return bool
+	 */
 	public function can_delete_user_input( $input = array() ) {
 		$id = isset( $input['user_id'] ) ? (int) $input['user_id'] : 0;
 		return $id > 0 && current_user_can( 'delete_user', $id );
 	}
 
+	/**
+	 * Build a normalized user payload.
+	 *
+	 * @param \WP_User $user User object.
+	 * @return array
+	 */
 	private function user_payload( \WP_User $user ) {
 		return array(
 			'user_id'      => (int) $user->ID,
@@ -369,6 +452,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the user list ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function user_list( array $input ) {
 		$args = array(
 			'number' => isset( $input['number'] ) ? min( 100, (int) $input['number'] ) : 20,
@@ -387,11 +476,23 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the user get ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function user_get( array $input ) {
 		$user = get_user_by( 'id', (int) $input['user_id'] );
 		return $user ? $this->user_payload( $user ) : new \WP_Error( 'wp_ability_user_not_found', __( 'User not found.', 'wp-ability' ) );
 	}
 
+	/**
+	 * Execute the user update ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function user_update( array $input ) {
 		$id   = (int) $input['user_id'];
 		$data = array( 'ID' => $id );
@@ -424,6 +525,12 @@ final class Core_Abilities {
 		return $this->user_get( array( 'user_id' => $id ) );
 	}
 
+	/**
+	 * Execute the user delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function user_delete( array $input ) {
 		require_once ABSPATH . 'wp-admin/includes/user.php';
 		$id = (int) $input['user_id'];
@@ -554,25 +661,54 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_edit_posts() {
 		return current_user_can( 'edit_posts' );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return bool
+	 */
 	public function can_read_post_input( $input = array() ) {
 		$id = isset( $input['post_id'] ) ? (int) $input['post_id'] : 0;
 		return $id > 0 && current_user_can( 'read_post', $id );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return bool
+	 */
 	public function can_edit_post_input( $input = array() ) {
 		$id = isset( $input['post_id'] ) ? (int) $input['post_id'] : 0;
 		return $id > 0 && current_user_can( 'edit_post', $id );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return bool
+	 */
 	public function can_delete_post_input( $input = array() ) {
 		$id = isset( $input['post_id'] ) ? (int) $input['post_id'] : 0;
 		return $id > 0 && current_user_can( 'delete_post', $id );
 	}
 
+	/**
+	 * Build a normalized post payload.
+	 *
+	 * @param \WP_Post $post Post object.
+	 * @return array
+	 */
 	private function post_payload( \WP_Post $post ) {
 		return array(
 			'post_id'      => (int) $post->ID,
@@ -589,6 +725,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the post list ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function post_list( array $input ) {
 		$type = isset( $input['post_type'] ) ? sanitize_key( $input['post_type'] ) : 'post';
 		if ( ! post_type_exists( $type ) ) {
@@ -611,11 +753,23 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the post get ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function post_get( array $input ) {
 		$post = get_post( (int) $input['post_id'] );
 		return $post ? $this->post_payload( $post ) : new \WP_Error( 'wp_ability_post_not_found', __( 'Post not found.', 'wp-ability' ) );
 	}
 
+	/**
+	 * Sanitize post ability input.
+	 *
+	 * @param array $input Ability input.
+	 * @return array
+	 */
 	private function sanitize_post_input( array $input ) {
 		$data = array();
 		if ( isset( $input['post_type'] ) ) {
@@ -640,6 +794,12 @@ final class Core_Abilities {
 		return $data;
 	}
 
+	/**
+	 * Execute the post create ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function post_create( array $input ) {
 		$data = $this->sanitize_post_input( $input );
 		if ( empty( $data['post_type'] ) ) {
@@ -656,6 +816,12 @@ final class Core_Abilities {
 		return is_wp_error( $id ) ? $id : $this->post_get( array( 'post_id' => $id ) );
 	}
 
+	/**
+	 * Execute the post update ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function post_update( array $input ) {
 		$data       = $this->sanitize_post_input( $input );
 		$data['ID'] = (int) $input['post_id'];
@@ -663,6 +829,12 @@ final class Core_Abilities {
 		return is_wp_error( $id ) ? $id : $this->post_get( array( 'post_id' => $id ) );
 	}
 
+	/**
+	 * Execute the post delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function post_delete( array $input ) {
 		$id    = (int) $input['post_id'];
 		$force = ! empty( $input['force'] );
@@ -762,12 +934,24 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return bool
+	 */
 	public function can_manage_terms_input( $input = array() ) {
 		$taxonomy = isset( $input['taxonomy'] ) ? sanitize_key( $input['taxonomy'] ) : '';
 		$obj      = $taxonomy ? get_taxonomy( $taxonomy ) : false;
 		return $obj && current_user_can( $obj->cap->manage_terms );
 	}
 
+	/**
+	 * Build a normalized term payload.
+	 *
+	 * @param \WP_Term $term Term object.
+	 * @return array
+	 */
 	private function term_payload( \WP_Term $term ) {
 		return array(
 			'term_id'     => (int) $term->term_id,
@@ -780,6 +964,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the term list ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function term_list( array $input ) {
 		$taxonomy = sanitize_key( $input['taxonomy'] );
 		$args = array(
@@ -796,6 +986,12 @@ final class Core_Abilities {
 		return array( 'terms' => array_map( array( $this, 'term_payload' ), $terms ) );
 	}
 
+	/**
+	 * Build taxonomy term arguments.
+	 *
+	 * @param array $input Ability input.
+	 * @return array
+	 */
 	private function term_args( array $input ) {
 		$args = array();
 		if ( isset( $input['slug'] ) ) {
@@ -810,6 +1006,12 @@ final class Core_Abilities {
 		return $args;
 	}
 
+	/**
+	 * Execute the term create ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function term_create( array $input ) {
 		$result = wp_insert_term( sanitize_text_field( $input['name'] ), sanitize_key( $input['taxonomy'] ), $this->term_args( $input ) );
 		if ( is_wp_error( $result ) ) {
@@ -819,6 +1021,12 @@ final class Core_Abilities {
 		return $term instanceof \WP_Term ? $this->term_payload( $term ) : new \WP_Error( 'wp_ability_term_create_failed', __( 'Term could not be loaded after creation.', 'wp-ability' ) );
 	}
 
+	/**
+	 * Execute the term update ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function term_update( array $input ) {
 		$args = $this->term_args( $input );
 		if ( isset( $input['name'] ) ) {
@@ -832,6 +1040,12 @@ final class Core_Abilities {
 		return $term instanceof \WP_Term ? $this->term_payload( $term ) : new \WP_Error( 'wp_ability_term_update_failed', __( 'Term could not be loaded after update.', 'wp-ability' ) );
 	}
 
+	/**
+	 * Execute the term delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function term_delete( array $input ) {
 		$result = wp_delete_term( (int) $input['term_id'], sanitize_key( $input['taxonomy'] ) );
 		return is_wp_error( $result ) ? $result : array(
@@ -898,10 +1112,21 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_upload_files() {
 		return current_user_can( 'upload_files' );
 	}
 
+	/**
+	 * Build a normalized media payload.
+	 *
+	 * @param \WP_Post $post Attachment post object.
+	 * @return array
+	 */
 	private function media_payload( \WP_Post $post ) {
 		return array(
 			'attachment_id' => (int) $post->ID,
@@ -914,6 +1139,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the media list ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function media_list( array $input ) {
 		$args = array(
 			'post_type'      => 'attachment',
@@ -934,6 +1165,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the media get ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function media_get( array $input ) {
 		$post = get_post( (int) $input['attachment_id'] );
 		if ( ! $post || 'attachment' !== $post->post_type ) {
@@ -963,14 +1200,30 @@ final class Core_Abilities {
 		$this->register( 'wordpress/option-delete', __( 'Delete WordPress Option', 'wp-ability' ), __( 'Deletes one non-protected WordPress option.', 'wp-ability' ), $name_schema, array( $this, 'option_delete' ), array( $this, 'can_manage_options' ), false, true, true );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_manage_options() {
 		return current_user_can( 'manage_options' );
 	}
 
+	/**
+	 * Return protected WordPress option names.
+	 *
+	 * @return array
+	 */
 	private function protected_options() {
 		return apply_filters( 'wp_ability_protected_options', array( 'active_plugins', 'cron', 'stylesheet', 'template', 'siteurl', 'home' ) );
 	}
 
+	/**
+	 * Execute the option get ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function option_get( array $input ) {
 		$name = sanitize_key( $input['option_name'] );
 		if ( in_array( $name, $this->protected_options(), true ) ) {
@@ -984,6 +1237,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the option delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function option_delete( array $input ) {
 		$name = sanitize_key( $input['option_name'] );
 		if ( in_array( $name, $this->protected_options(), true ) ) {
@@ -1063,6 +1322,11 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * List scheduled WordPress cron events.
+	 *
+	 * @return array
+	 */
 	public function cron_list() {
 		$cron   = _get_cron_array();
 		$result = array();
@@ -1082,6 +1346,12 @@ final class Core_Abilities {
 		return array( 'events' => $result );
 	}
 
+	/**
+	 * Execute the cron schedule ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function cron_schedule( array $input ) {
 		$hook       = sanitize_key( $input['hook'] );
 		$timestamp  = (int) $input['timestamp'];
@@ -1100,6 +1370,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the cron delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function cron_delete( array $input ) {
 		$hook      = sanitize_key( $input['hook'] );
 		$timestamp = (int) $input['timestamp'];
@@ -1160,6 +1436,12 @@ final class Core_Abilities {
 		$this->register( 'wordpress/transient-delete', __( 'Delete WordPress Transient', 'wp-ability' ), __( 'Deletes one site-local WordPress transient.', 'wp-ability' ), $name_schema, array( $this, 'transient_delete' ), array( $this, 'can_manage_options' ), false, true, true );
 	}
 
+	/**
+	 * Execute the transient get ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function transient_get( array $input ) {
 		$name  = sanitize_key( $input['name'] );
 		$value = get_transient( $name );
@@ -1170,6 +1452,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the transient set ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function transient_set( array $input ) {
 		$name       = sanitize_key( $input['name'] );
 		$expiration = isset( $input['expiration'] ) ? max( 0, (int) $input['expiration'] ) : 0;
@@ -1181,6 +1469,12 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Execute the transient delete ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function transient_delete( array $input ) {
 		$name = sanitize_key( $input['name'] );
 		return array(
@@ -1218,10 +1512,21 @@ final class Core_Abilities {
 		$this->register( 'wordpress/update-check', __( 'Check WordPress Updates', 'wp-ability' ), __( 'Refreshes WordPress core, plugin, and theme update information.', 'wp-ability' ), $this->empty_schema(), array( $this, 'update_check' ), array( $this, 'can_update_core' ), false, false, true, true );
 	}
 
+	/**
+	 * Check whether the current user can perform this ability.
+	 *
+	 * @return bool
+	 */
 	public function can_update_core() {
 		return current_user_can( 'update_core' );
 	}
 
+	/**
+	 * Execute the rewrite flush ability.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
 	public function rewrite_flush( array $input ) {
 		$hard = ! array_key_exists( 'hard', $input ) || ! empty( $input['hard'] );
 		flush_rewrite_rules( $hard );
@@ -1231,6 +1536,11 @@ final class Core_Abilities {
 		);
 	}
 
+	/**
+	 * Refresh and return WordPress update information.
+	 *
+	 * @return array
+	 */
 	public function update_check() {
 		require_once ABSPATH . 'wp-admin/includes/update.php';
 		wp_version_check();
