@@ -23,7 +23,6 @@ class AbilitiesTest extends WP_UnitTestCase {
 		if ( ! function_exists( 'wp_register_ability' ) || ! function_exists( 'wp_get_ability' ) ) {
 			$this->markTestSkipped( 'The WordPress Abilities API is unavailable.' );
 		}
-
 	}
 
 	/**
