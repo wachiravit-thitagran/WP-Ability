@@ -16,6 +16,7 @@ The plugin remains safely inactive when the Abilities API is unavailable.
 | Ability | Purpose | Required capability |
 | --- | --- | --- |
 | `wordpress/plugin-install` | Install a plugin from WordPress.org, optionally activate it | `install_plugins`, plus `activate_plugins` when activation is requested |
+| `wordpress/plugin-install-package` | Install or overwrite a plugin from an HTTPS ZIP package URL using WordPress Core `Plugin_Upgrader` | `install_plugins`, plus `update_plugins` for overwrite and `activate_plugins` for activation |
 | `wordpress/plugin-update` | Update one installed plugin | `update_plugins` |
 | `wordpress/user-create` | Create a WordPress user and assign an editable role | `create_users`, plus `promote_users` for non-subscriber roles |
 | `wordpress/option-update` | Update a JSON-compatible WordPress option | `manage_options` |
@@ -23,6 +24,31 @@ The plugin remains safely inactive when the Abilities API is unavailable.
 | `wordpress/cron-run` | Run one existing scheduled WordPress event | `manage_options` |
 | `wordpress/cache-flush` | Flush the active WordPress object cache | `manage_options` |
 | `wordpress/database-optimize` | Optimize WordPress-managed database tables | `manage_options` |
+
+## Custom plugin packages
+
+Use `wordpress/plugin-install-package` when a plugin is distributed as a ZIP package rather than through WordPress.org.
+
+Example input:
+
+```json
+{
+  "package_url": "https://example.com/my-plugin.zip",
+  "overwrite": true,
+  "activate": true
+}
+```
+
+Rules:
+
+- `package_url` must be a valid HTTPS URL.
+- Every request requires `install_plugins`.
+- `overwrite: true` additionally requires `update_plugins`.
+- `activate: true` additionally requires `activate_plugins`.
+- Installation and overwrite are delegated to WordPress Core `Plugin_Upgrader`; the bridge does not manually unzip, delete, or copy live plugin directories.
+- The ability does not persist repository credentials or tokens.
+
+For normal MCP-driven custom ZIP installation and overwrite, the separate `WP-plugin-deploy` plugin is no longer required once this bridge version is installed and the ability is discoverable.
 
 ## Security model
 
