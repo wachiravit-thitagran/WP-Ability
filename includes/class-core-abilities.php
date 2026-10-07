@@ -314,7 +314,7 @@ final class Core_Abilities {
 	public function theme_delete( array $input ) {
 		require_once ABSPATH . 'wp-admin/includes/theme.php';
 		$stylesheet = sanitize_key( $input['stylesheet'] );
-		if ( $stylesheet === get_stylesheet() || $stylesheet === get_template() ) {
+		if ( get_stylesheet() === $stylesheet || get_template() === $stylesheet ) {
 			return new \WP_Error( 'wp_ability_theme_active', __( 'The active theme cannot be deleted.', 'wp-ability' ) );
 		}
 		$theme = wp_get_theme( $stylesheet );
@@ -534,7 +534,7 @@ final class Core_Abilities {
 	public function user_delete( array $input ) {
 		require_once ABSPATH . 'wp-admin/includes/user.php';
 		$id = (int) $input['user_id'];
-		if ( $id === get_current_user_id() ) {
+		if ( get_current_user_id() === $id ) {
 			return new \WP_Error( 'wp_ability_cannot_delete_self', __( 'The current user cannot delete itself through this ability.', 'wp-ability' ) );
 		}
 		$reassign = isset( $input['reassign'] ) && null !== $input['reassign'] ? (int) $input['reassign'] : null;
