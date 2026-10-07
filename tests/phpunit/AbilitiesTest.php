@@ -198,6 +198,12 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 */
 	public function test_plugin_install_package_delegates_to_installer(): void {
 		$installer = new class() {
+			/**
+			 * Return a successful fixture install result.
+			 *
+			 * @param array $input Ability input.
+			 * @return array
+			 */
 			public function install( array $input ) {
 				return array(
 					'plugin_file' => 'fixture/fixture.php',
@@ -232,6 +238,12 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 */
 	public function test_plugin_install_package_propagates_installer_error(): void {
 		$installer = new class() {
+			/**
+			 * Return a fixture installer error.
+			 *
+			 * @param array $input Ability input.
+			 * @return WP_Error
+			 */
 			public function install( array $input ) {
 				unset( $input );
 				return new WP_Error( 'fixture_error', 'Fixture failure.' );
