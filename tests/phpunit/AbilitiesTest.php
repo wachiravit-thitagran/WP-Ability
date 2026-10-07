@@ -35,14 +35,14 @@ class AbilitiesTest extends WP_UnitTestCase {
 		do_action( 'wp_abilities_api_init' );
 
 		$names = array(
-			'wordpress/plugins/install',
-			'wordpress/plugins/update',
-			'wordpress/users/create',
-			'wordpress/options/update',
-			'wordpress/media/delete',
-			'wordpress/cron/run',
-			'wordpress/cache/flush',
-			'wordpress/database/optimize',
+			'wordpress/plugin-install',
+			'wordpress/plugin-update',
+			'wordpress/user-create',
+			'wordpress/option-update',
+			'wordpress/media-delete',
+			'wordpress/cron-run',
+			'wordpress/cache-flush',
+			'wordpress/database-optimize',
 		);
 
 		foreach ( $names as $name ) {
