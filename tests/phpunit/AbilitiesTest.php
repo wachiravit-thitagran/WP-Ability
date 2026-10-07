@@ -80,6 +80,112 @@ class AbilitiesTest extends WP_UnitTestCase {
 		}
 	}
 
+
+	/**
+	 * Plugin package ability is registered.
+	 *
+	 * @return void
+	 */
+	public function test_registers_plugin_install_package_ability(): void {
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-install-package' ) );
+	}
+
+	/**
+	 * Plugin package installation requires install_plugins.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_install_package_requires_install_plugins(): void {
+		$abilities  = new Abilities();
+		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+
+		wp_set_current_user( $subscriber );
+
+		$this->assertFalse(
+			$abilities->can_install_plugin_package(
+				array(
+					'package_url' => 'https://example.com/plugin.zip',
+					'overwrite'   => false,
+					'activate'    => false,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Overwriting a plugin package requires update_plugins.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_install_package_overwrite_requires_update_plugins(): void {
+		$abilities = new Abilities();
+		$user_id   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user      = new WP_User( $user_id );
+
+		$user->add_cap( 'install_plugins' );
+		$user->remove_cap( 'update_plugins' );
+		wp_set_current_user( $user_id );
+
+		$this->assertFalse(
+			$abilities->can_install_plugin_package(
+				array(
+					'package_url' => 'https://example.com/plugin.zip',
+					'overwrite'   => true,
+					'activate'    => false,
+				)
+			)
+		);
+
+		$user->add_cap( 'update_plugins' );
+
+		$this->assertTrue(
+			$abilities->can_install_plugin_package(
+				array(
+					'package_url' => 'https://example.com/plugin.zip',
+					'overwrite'   => true,
+					'activate'    => false,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Activating an installed package requires activate_plugins.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_install_package_activation_requires_activate_plugins(): void {
+		$abilities = new Abilities();
+		$user_id   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user      = new WP_User( $user_id );
+
+		$user->add_cap( 'install_plugins' );
+		$user->remove_cap( 'activate_plugins' );
+		wp_set_current_user( $user_id );
+
+		$this->assertFalse(
+			$abilities->can_install_plugin_package(
+				array(
+					'package_url' => 'https://example.com/plugin.zip',
+					'overwrite'   => false,
+					'activate'    => true,
+				)
+			)
+		);
+
+		$user->add_cap( 'activate_plugins' );
+
+		$this->assertTrue(
+			$abilities->can_install_plugin_package(
+				array(
+					'package_url' => 'https://example.com/plugin.zip',
+					'overwrite'   => false,
+					'activate'    => true,
+				)
+			)
+		);
+	}
+
 	/**
 	 * Option updates require manage_options.
 	 *
