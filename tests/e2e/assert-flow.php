@@ -4,6 +4,8 @@
  *
  * Invoked through WP-CLI eval-file so WordPress, registered abilities,
  * permissions, and Plugin_Upgrader are all real.
+ *
+ * @package WP_Ability
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -72,18 +74,18 @@ switch ( $command ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$expected = isset( $args[1] ) ? $args[1] : '';
 		$state    = isset( $args[2] ) ? $args[2] : 'inactive';
-		$plugins  = get_plugins();
+		$installed_plugins = get_plugins();
 
-		if ( ! isset( $plugins[ $plugin_file ] ) ) {
+		if ( ! isset( $installed_plugins[ $plugin_file ] ) ) {
 			WP_CLI::error( 'Fixture plugin is not installed.' );
 		}
 
-		if ( $expected !== $plugins[ $plugin_file ]['Version'] ) {
-			WP_CLI::error( 'Expected fixture version ' . $expected . ', got ' . $plugins[ $plugin_file ]['Version'] . '.' );
+		if ( $expected !== $installed_plugins[ $plugin_file ]['Version'] ) {
+			WP_CLI::error( 'Expected fixture version ' . $expected . ', got ' . $installed_plugins[ $plugin_file ]['Version'] . '.' );
 		}
 
 		$should_be_active = 'active' === $state;
-		if ( $should_be_active !== is_plugin_active( $plugin_file ) ) {
+		if ( is_plugin_active( $plugin_file ) !== $should_be_active ) {
 			WP_CLI::error( 'Fixture activation state did not match ' . $state . '.' );
 		}
 
@@ -108,9 +110,9 @@ switch ( $command ) {
 
 	case 'assert-absent':
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		$plugins = get_plugins();
+		$installed_plugins = get_plugins();
 
-		if ( isset( $plugins[ $plugin_file ] ) || is_dir( WP_PLUGIN_DIR . '/wp-ability-e2e-fixture' ) ) {
+		if ( isset( $installed_plugins[ $plugin_file ] ) || is_dir( WP_PLUGIN_DIR . '/wp-ability-e2e-fixture' ) ) {
 			WP_CLI::error( 'Fixture plugin still exists after delete.' );
 		}
 
