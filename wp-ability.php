@@ -1,21 +1,22 @@
 <?php
 /**
- * Plugin Name: WP Ability
- * Plugin URI: https://github.com/wachiravit-thitagran/WP-Ability
- * Description: Administrative WordPress capabilities exposed through the WordPress Abilities API.
- * Version: 0.1.0
+ * Plugin Name: WordPress Abilities Bridge
+ * Plugin URI: https://github.com/wachiravit-thitagran/WordPress-Abilities-Bridge
+ * Description: Exposes WordPress Core functionality as secure, permission-aware abilities through the native WordPress Abilities API.
+ * Version: 0.2.0
  * Requires at least: 6.9
  * Requires PHP: 7.4
  * Author: Wachiravit Thitagran
  * License: GPL-2.0-or-later
  * Text Domain: wp-ability
  *
- * @package WP_Ability
+ * @package WordPress_Abilities_Bridge
  */
 
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/includes/class-abilities.php';
+require_once __DIR__ . '/includes/class-core-abilities.php';
 
 /**
  * Boot the plugin.
@@ -24,5 +25,6 @@ require_once __DIR__ . '/includes/class-abilities.php';
  */
 function wp_ability_boot() {
 	new WP_Ability\Abilities();
+	new WP_Ability\Core_Abilities();
 }
 add_action( 'plugins_loaded', 'wp_ability_boot' );
