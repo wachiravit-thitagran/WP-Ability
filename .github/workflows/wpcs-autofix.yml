@@ -1,0 +1,36 @@
+name: WPCS Autofix
+
+on:
+  push:
+    branches:
+      - feat/native-plugin-package-ability
+
+permissions:
+  contents: write
+
+jobs:
+  phpcbf:
+    if: contains(github.event.head_commit.message, 'chore: run WPCS autofix')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/native-plugin-package-ability
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Apply PHPCBF to legacy core abilities file
+        run: vendor/bin/phpcbf -n --standard=phpcs.xml.dist includes/class-core-abilities.php || true
+      - name: Commit mechanical formatting
+        run: |
+          if git diff --quiet -- includes/class-core-abilities.php; then
+            echo "No PHPCBF changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add includes/class-core-abilities.php
+          git commit -m "style: apply WPCS autofix"
+          git push origin HEAD:feat/native-plugin-package-ability
