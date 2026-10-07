@@ -16,7 +16,7 @@
     }
   },
   "scripts": {
-    "lint": "phpcs --standard=phpcs.xml.dist wp-ability.php includes tests",
+    "lint": "phpcs -n --standard=phpcs.xml.dist wp-ability.php includes tests",
     "test": "phpunit"
   }
 }
