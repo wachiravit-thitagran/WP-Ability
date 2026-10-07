@@ -2,6 +2,8 @@
 /**
  * Plugin Name: WP Ability E2E Fixture
  * Description: Disposable fixture plugin for WordPress Abilities Bridge E2E tests.
+ * @package WP_Ability
+ *
  * Version: 1.0.0
  */
 
