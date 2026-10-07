@@ -1,8 +1,8 @@
-# WP Ability
+# WordPress Abilities Bridge
 
-Administrative WordPress capabilities exposed through the native WordPress Abilities API.
+WordPress Core functionality exposed as secure, permission-aware semantic operations through the native WordPress Abilities API.
 
-WP Ability provides semantic, permission-aware operations that can be consumed by WordPress integrations, automation systems, AI agents, and MCP adapters without exposing an unrestricted PHP, shell, or SQL execution interface.
+WordPress Abilities Bridge provides semantic, permission-aware operations that can be consumed by WordPress integrations, automation systems, AI agents, and MCP adapters without exposing an unrestricted PHP, shell, or SQL execution interface.
 
 ## Requirements
 
@@ -57,6 +57,23 @@ Consumers should inspect ability annotations before execution, especially for op
 5. Avoid returning secrets or credentials.
 6. Keep ability descriptions neutral so they remain useful outside any particular transport such as MCP.
 7. Make potentially dangerous extension points explicit and reviewable.
+
+## Coverage
+
+The bridge currently registers abilities across these WordPress Core domains:
+
+- plugins: inventory, install, activate, deactivate, update, delete
+- themes: inventory, activate, delete
+- users: list, get, create, update, delete
+- posts, pages, and custom post types: list, get, create, update, delete
+- taxonomy terms: list, create, update, delete
+- media: list, get, delete
+- options: get, update, delete with protected-option safeguards
+- cron: list, schedule, run, delete
+- transients: get, set, delete
+- object cache, rewrite rules, database optimization, and update checks
+
+The project intentionally does not expose arbitrary PHP evaluation, raw SQL execution, shell commands, or unrestricted filesystem/network operations.
 
 ## Planned expansion
 
