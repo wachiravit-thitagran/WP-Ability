@@ -7,10 +7,281 @@
 
 use WP_Ability\Plugin_Package_Installer;
 
+
+/**
+ * Fake upgrader used to observe native installer orchestration.
+ */
+class WPAbilityFakePluginUpgrader {
+	/**
+	 * Result returned by install().
+	 *
+	 * @var mixed
+	 */
+	public $install_result = true;
+
+	/**
+	 * Plugin file returned by plugin_info().
+	 *
+	 * @var string
+	 */
+	public $plugin_file = 'wp-ability-package-fixture/fixture.php';
+
+	/**
+	 * Last package passed to install().
+	 *
+	 * @var string|null
+	 */
+	public $package;
+
+	/**
+	 * Last arguments passed to install().
+	 *
+	 * @var array
+	 */
+	public $args = array();
+
+	/**
+	 * Simulate Plugin_Upgrader::install().
+	 *
+	 * @param string $package Package URL.
+	 * @param array  $args    Install arguments.
+	 * @return mixed
+	 */
+	public function install( $package, $args = array() ) {
+		$this->package = $package;
+		$this->args    = $args;
+		return $this->install_result;
+	}
+
+	/**
+	 * Simulate Plugin_Upgrader::plugin_info().
+	 *
+	 * @return string
+	 */
+	public function plugin_info() {
+		return $this->plugin_file;
+	}
+}
+
 /**
  * Test package source validation.
  */
 class PluginPackageInstallerTest extends WP_UnitTestCase {
+
+
+	/**
+	 * Successful installs delegate to the upgrader without overwrite.
+	 *
+	 * @return void
+	 */
+	public function test_installs_package_with_native_upgrader(): void {
+		$fake      = new WPAbilityFakePluginUpgrader();
+		$installer = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+				'overwrite'   => false,
+				'activate'    => false,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'https://example.com/plugin.zip', $fake->package );
+		$this->assertFalse( $fake->args['overwrite_package'] );
+		$this->assertTrue( $fake->args['clear_update_cache'] );
+		$this->assertSame( 'wp-ability-package-fixture/fixture.php', $result['plugin_file'] );
+		$this->assertTrue( $result['installed'] );
+		$this->assertFalse( $result['overwritten'] );
+		$this->assertFalse( $result['activated'] );
+	}
+
+	/**
+	 * Overwrite requests enable overwrite_package.
+	 *
+	 * @return void
+	 */
+	public function test_overwrites_package_when_requested(): void {
+		$fake      = new WPAbilityFakePluginUpgrader();
+		$installer = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+				'overwrite'   => true,
+				'activate'    => false,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertTrue( $fake->args['overwrite_package'] );
+		$this->assertTrue( $result['overwritten'] );
+	}
+
+	/**
+	 * Existing package refusal is returned as a structured error.
+	 *
+	 * @return void
+	 */
+	public function test_existing_plugin_without_overwrite_returns_error(): void {
+		$fake                 = new WPAbilityFakePluginUpgrader();
+		$fake->install_result = new WP_Error( 'folder_exists', 'Destination folder already exists.' );
+		$installer            = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+				'overwrite'   => false,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'folder_exists', $result->get_error_code() );
+	}
+
+	/**
+	 * Upgrader WP_Error values are propagated.
+	 *
+	 * @return void
+	 */
+	public function test_propagates_plugin_upgrader_error(): void {
+		$fake                 = new WPAbilityFakePluginUpgrader();
+		$fake->install_result = new WP_Error( 'download_failed', 'Download failed.' );
+		$installer            = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'download_failed', $result->get_error_code() );
+	}
+
+	/**
+	 * A false upgrader result becomes a structured install error.
+	 *
+	 * @return void
+	 */
+	public function test_false_plugin_upgrader_result_returns_error(): void {
+		$fake                 = new WPAbilityFakePluginUpgrader();
+		$fake->install_result = false;
+		$installer            = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'wp_ability_plugin_package_install_failed', $result->get_error_code() );
+	}
+
+	/**
+	 * Missing plugin_info is rejected.
+	 *
+	 * @return void
+	 */
+	public function test_missing_plugin_info_returns_error(): void {
+		$fake              = new WPAbilityFakePluginUpgrader();
+		$fake->plugin_file = '';
+		$installer         = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'wp_ability_plugin_file_unknown', $result->get_error_code() );
+	}
+
+	/**
+	 * Activation errors are propagated.
+	 *
+	 * @return void
+	 */
+	public function test_activation_error_is_propagated(): void {
+		$fake      = new WPAbilityFakePluginUpgrader();
+		$installer = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			},
+			static function () {
+				return new WP_Error( 'activation_failed', 'Activation failed.' );
+			},
+			static function () {
+				return false;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+				'activate'    => true,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'activation_failed', $result->get_error_code() );
+	}
+
+	/**
+	 * Activation must be verifiably active.
+	 *
+	 * @return void
+	 */
+	public function test_activation_must_be_verified(): void {
+		$fake      = new WPAbilityFakePluginUpgrader();
+		$installer = new Plugin_Package_Installer(
+			static function () use ( $fake ) {
+				return $fake;
+			},
+			static function () {
+				return null;
+			},
+			static function () {
+				return false;
+			}
+		);
+
+		$result = $installer->install(
+			array(
+				'package_url' => 'https://example.com/plugin.zip',
+				'activate'    => true,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'wp_ability_plugin_activation_unverified', $result->get_error_code() );
+	}
 
 	/**
 	 * Empty package URLs are rejected.
