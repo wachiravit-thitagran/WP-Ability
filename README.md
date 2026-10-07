@@ -75,6 +75,28 @@ The repository is intended to become a broader WordPress administration ability 
 - backup-aware and rollback-aware composite operations
 - audit logging and execution history
 
+## Releases
+
+GitHub Actions builds an installable WordPress plugin ZIP whenever a version tag matching `v*` is pushed.
+
+Example:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The tag version must match the `Version:` value in `wp-ability.php`.
+
+Each release contains:
+
+- `wp-ability-<version>.zip` — ready to upload from **Plugins → Add Plugin → Upload Plugin**
+- `wp-ability-<version>.zip.sha256` — checksum for verifying the package
+
+The ZIP contains a top-level `wp-ability/` directory and excludes development-only files such as tests, GitHub workflows, Composer development dependencies, and Git metadata.
+
+The release workflow can also be started manually from **Actions → Build and Release Plugin** for an existing version tag.
+
 ## License
 
 GPL-2.0-or-later.
