@@ -201,6 +201,22 @@ final class Abilities {
 		return true;
 	}
 
+
+	/**
+	 * Temporary package install callback until installer delegation is added.
+	 *
+	 * @param array $input Ability input.
+	 * @return \WP_Error
+	 */
+	public function plugin_install_package( array $input ) {
+		unset( $input );
+
+		return new \WP_Error(
+			'wp_ability_plugin_package_not_implemented',
+			__( 'Plugin package installation is not implemented yet.', 'wp-ability' )
+		);
+	}
+
 	/**
 	 * Check plugin-install permissions.
 	 *
