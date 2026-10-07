@@ -15,6 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/includes/class-plugin-package-installer.php';
 require_once __DIR__ . '/includes/class-abilities.php';
 require_once __DIR__ . '/includes/class-core-abilities.php';
 
