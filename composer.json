@@ -1,6 +1,6 @@
 {
-  "name": "wachiravit-thitagran/wp-ability",
-  "description": "Administrative WordPress abilities exposed through the WordPress Abilities API.",
+  "name": "wachiravit-thitagran/wordpress-abilities-bridge",
+  "description": "Expose WordPress Core functionality as secure semantic abilities through the WordPress Abilities API.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "require-dev": {
