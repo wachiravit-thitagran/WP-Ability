@@ -31,7 +31,6 @@ final class Core_Abilities {
 			return;
 		}
 
-		$this->register_themes();
 		$this->register_users();
 		$this->register_posts();
 		$this->register_terms();
@@ -90,107 +89,6 @@ final class Core_Abilities {
 			'type'                 => 'object',
 			'properties'           => array(),
 			'additionalProperties' => false,
-		);
-	}
-
-	/**
-	 * Register theme abilities.
-	 *
-	 * @return void
-	 */
-	private function register_themes() {
-		$this->register( 'wordpress/theme-list', __( 'List WordPress Themes', 'wp-ability' ), __( 'Lists installed themes and the currently active stylesheet.', 'wp-ability' ), $this->empty_schema(), array( $this, 'theme_list' ), array( $this, 'can_switch_themes' ), true, false, true );
-		$slug_schema = array(
-			'type' => 'object',
-			'properties' => array(
-				'stylesheet' => array(
-					'type' => 'string',
-					'minLength' => 1,
-				),
-			),
-			'required' => array( 'stylesheet' ),
-			'additionalProperties' => false,
-		);
-		$this->register( 'wordpress/theme-activate', __( 'Activate WordPress Theme', 'wp-ability' ), __( 'Switches the current site to an installed theme.', 'wp-ability' ), $slug_schema, array( $this, 'theme_activate' ), array( $this, 'can_switch_themes' ), false, false, true );
-		$this->register( 'wordpress/theme-delete', __( 'Delete WordPress Theme', 'wp-ability' ), __( 'Deletes an installed inactive theme.', 'wp-ability' ), $slug_schema, array( $this, 'theme_delete' ), array( $this, 'can_delete_themes' ), false, true, true );
-	}
-
-	/**
-	 * Check whether the current user can perform this ability.
-	 *
-	 * @return bool
-	 */
-	public function can_switch_themes() {
-		return current_user_can( 'switch_themes' );
-	}
-
-	/**
-	 * Check whether the current user can perform this ability.
-	 *
-	 * @return bool
-	 */
-	public function can_delete_themes() {
-		return current_user_can( 'delete_themes' );
-	}
-
-	/**
-	 * List installed WordPress themes.
-	 *
-	 * @return array
-	 */
-	public function theme_list() {
-		$current = get_stylesheet();
-		$result  = array();
-		foreach ( wp_get_themes() as $stylesheet => $theme ) {
-			$result[] = array(
-				'stylesheet' => $stylesheet,
-				'name'       => $theme->get( 'Name' ),
-				'version'    => $theme->get( 'Version' ),
-				'active'     => $stylesheet === $current,
-			);
-		}
-		return array( 'themes' => $result );
-	}
-
-	/**
-	 * Execute the theme activate ability.
-	 *
-	 * @param array $input Ability input.
-	 * @return array|\WP_Error
-	 */
-	public function theme_activate( array $input ) {
-		$stylesheet = sanitize_key( $input['stylesheet'] );
-		$theme      = wp_get_theme( $stylesheet );
-		if ( ! $theme->exists() || $theme->errors() ) {
-			return new \WP_Error( 'wp_ability_theme_not_found', __( 'Theme not found or invalid.', 'wp-ability' ) );
-		}
-		switch_theme( $stylesheet );
-		return array(
-			'stylesheet' => $stylesheet,
-			'active' => true,
-		);
-	}
-
-	/**
-	 * Execute the theme delete ability.
-	 *
-	 * @param array $input Ability input.
-	 * @return array|\WP_Error
-	 */
-	public function theme_delete( array $input ) {
-		require_once ABSPATH . 'wp-admin/includes/theme.php';
-		$stylesheet = sanitize_key( $input['stylesheet'] );
-		if ( get_stylesheet() === $stylesheet || get_template() === $stylesheet ) {
-			return new \WP_Error( 'wp_ability_theme_active', __( 'The active theme cannot be deleted.', 'wp-ability' ) );
-		}
-		$theme = wp_get_theme( $stylesheet );
-		if ( ! $theme->exists() ) {
-			return new \WP_Error( 'wp_ability_theme_not_found', __( 'Theme not found.', 'wp-ability' ) );
-		}
-		$result = delete_theme( $stylesheet );
-		return is_wp_error( $result ) ? $result : array(
-			'stylesheet' => $stylesheet,
-			'deleted' => true,
 		);
 	}
 
