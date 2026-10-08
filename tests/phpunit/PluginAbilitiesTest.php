@@ -336,23 +336,21 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_plugin_check_updates_returns_core_update_metadata(): void {
-		$fixture = (object) array(
-			'last_checked' => time(),
-			'checked'      => array(
-				'wp-ability-inventory-fixture/fixture.php' => '1.2.3',
-			),
-			'response'     => array(
-				'wp-ability-inventory-fixture/fixture.php' => (object) array(
-					'plugin'      => 'wp-ability-inventory-fixture/fixture.php',
-					'new_version' => '2.0.0',
-				),
-			),
-			'no_update'    => array(),
-		);
-		set_site_transient( 'update_plugins', $fixture );
+		$inject_fixture = static function ( $value ) {
+			$value->response['wp-ability-inventory-fixture/fixture.php'] = (object) array(
+				'plugin'      => 'wp-ability-inventory-fixture/fixture.php',
+				'new_version' => '2.0.0',
+			);
+
+			return $value;
+		};
+
+		add_filter( 'pre_set_site_transient_update_plugins', $inject_fixture );
 
 		$plugins = new Plugin_Abilities();
 		$result  = $plugins->plugin_check_updates();
+
+		remove_filter( 'pre_set_site_transient_update_plugins', $inject_fixture );
 
 		$this->assertArrayHasKey( 'updates', $result );
 		$this->assertSame(
