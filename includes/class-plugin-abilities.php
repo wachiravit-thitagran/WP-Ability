@@ -136,6 +136,11 @@ final class Plugin_Abilities {
 							'type'    => 'boolean',
 							'default' => false,
 						),
+						'expected_sha256' => array(
+							'type'      => 'string',
+							'minLength' => 64,
+							'maxLength' => 64,
+						),
 					),
 					'required'             => array( 'package_url' ),
 					'additionalProperties' => false,
