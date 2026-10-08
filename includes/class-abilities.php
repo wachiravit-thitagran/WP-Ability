@@ -106,7 +106,7 @@ final class Abilities {
 	 * @return void
 	 */
 	private function register_user_create() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/user-create',
 			array(
 				'label'               => __( 'Create WordPress User', 'wp-ability' ),
@@ -213,7 +213,7 @@ final class Abilities {
 	 * @return void
 	 */
 	private function register_option_update() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/option-update',
 			array(
 				'label'               => __( 'Update WordPress Option', 'wp-ability' ),
@@ -335,7 +335,7 @@ final class Abilities {
 	 * @return void
 	 */
 	private function register_media_delete() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/media-delete',
 			array(
 				'label'               => __( 'Delete WordPress Media', 'wp-ability' ),
@@ -409,7 +409,7 @@ final class Abilities {
 	 * @return void
 	 */
 	private function register_cron_run() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/cron-run',
 			array(
 				'label'               => __( 'Run Scheduled WordPress Event', 'wp-ability' ),
@@ -488,7 +488,7 @@ final class Abilities {
 	 * @return void
 	 */
 	private function register_cache_flush() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/cache-flush',
 			array(
 				'label'               => __( 'Flush WordPress Object Cache', 'wp-ability' ),
@@ -525,7 +525,7 @@ final class Abilities {
 	 * @return void
 	 */
 	private function register_database_optimize() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/database-optimize',
 			array(
 				'label'               => __( 'Optimize WordPress Database Tables', 'wp-ability' ),
