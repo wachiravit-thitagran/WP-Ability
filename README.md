@@ -64,6 +64,92 @@ Theme package installation accepts only validated HTTPS package URLs. The bridge
 
 
 
+## Ability contracts
+
+Every `wordpress/*` ability publishes both `input_schema` and `output_schema`. Object properties are annotated with client-facing titles and descriptions so REST, MCP, AI, and other schema-driven consumers can inspect the operation before execution.
+
+The bridge keeps output schemas forward-compatible with WordPress Core by documenting stable semantic fields while allowing additional Core-provided fields.
+
+## Optional GitHub self-update
+
+The bridge can surface its GitHub Releases through the normal WordPress plugin update transient. This integration is deliberately **disabled by default** because some managed hosts block outbound access to GitHub and a forced remote check would add latency or failures to normal WordPress update checks.
+
+Enable it only on hosts that can reach `api.github.com`:
+
+```php
+define( 'WP_ABILITY_GITHUB_UPDATES', true );
+```
+
+It can also be controlled dynamically:
+
+```php
+add_filter( 'wp_ability_github_updates_enabled', '__return_true' );
+```
+
+When GitHub is unreachable, invalid, or times out, the updater fails open and leaves the existing WordPress update transient unchanged.
+
+## Package integrity
+
+Custom plugin and theme package abilities accept an optional `expected_sha256` value:
+
+```json
+{
+  "package_url": "https://example.com/package.zip",
+  "overwrite": true,
+  "activate": true,
+  "expected_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+}
+```
+
+When supplied, the bridge hooks WordPress Core's upgrader download step, calculates the downloaded ZIP SHA-256, and refuses installation when the digest does not match. Package extraction, overwrite, and activation remain delegated to Core.
+
+## WordPress Core compatibility
+
+The bridge preserves its existing `wordpress/*` names for compatibility while publishing known official Core equivalents in ability metadata. Current mappings include:
+
+- `wordpress/user-list` → `core/read-users`
+- `wordpress/post-list` and `wordpress/post-get` → `core/read-content`
+- `wordpress/option-get` → `core/read-settings`
+
+The registrar never replaces an ability name that is already registered. This lets future WordPress Core abilities take ownership without a duplicate registration conflict.
+
+## Media abilities
+
+Media management uses WordPress attachment APIs and capability checks:
+
+- `wordpress/media-list`
+- `wordpress/media-get`
+- `wordpress/media-upload` — validated HTTPS source URL through `download_url()` and `media_handle_sideload()`
+- `wordpress/media-update` — attachment title, caption, description, and alternative text
+- `wordpress/media-delete`
+
+## Comment abilities
+
+Comment management uses `WP_Comment_Query` and WordPress Core comment APIs:
+
+- `wordpress/comment-list`
+- `wordpress/comment-get`
+- `wordpress/comment-create`
+- `wordpress/comment-update`
+- `wordpress/comment-delete`
+- `wordpress/comment-approve`
+- `wordpress/comment-spam`
+- `wordpress/comment-trash`
+
+Creation is constrained to posts editable by the current user; moderation actions require the normal Core moderation capability.
+
+## Audit integration
+
+The bridge listens to the native `wp_before_execute_ability` and `wp_after_execute_ability` lifecycle hooks and emits a normalized `wp_ability_audit_event` action for external observability systems.
+
+The event intentionally excludes raw input and output values. It exposes only metadata such as phase, ability name, current user ID, input field names, result type, error code, and timestamp. The bridge does **not** create its own audit database or log store.
+
+The event context can be extended with the `wp_ability_audit_event_context` filter.
+
+## Internal domain ownership
+
+Production registration is split into focused classes for users, content, taxonomy, media, options, cron/transients, maintenance, comments, plugins, and themes. The former broad classes remain available as compatibility layers but are no longer booted as the production owners of those registrations.
+
 ## Custom plugin packages
 
 Use `wordpress/plugin-install-package` when a plugin is distributed as a ZIP package rather than through WordPress.org.
@@ -74,7 +160,8 @@ Example input:
 {
   "package_url": "https://example.com/my-plugin.zip",
   "overwrite": true,
-  "activate": true
+  "activate": true,
+  "expected_sha256": "optional-64-character-sha256"
 }
 ```
 
@@ -128,14 +215,15 @@ Consumers should inspect ability annotations before execution, especially for op
 The bridge currently registers abilities across these WordPress Core domains:
 
 - plugins: inventory/details, WordPress.org discovery, install/package install, site and network activation, bulk actions, update checks, single/bulk updates, auto-update controls, dependency/update state, delete, and read-only MU inventory
-- themes: inventory/details, WordPress.org discovery, install/package install, update checks, single/bulk updates, auto-update controls, activate, and delete
+- themes: inventory/details, WordPress.org discovery, install/package install, optional SHA-256 verification, update checks, single/bulk updates, auto-update controls, activate, and delete
 - users: list, get, create, update, delete
 - posts, pages, and custom post types: list, get, create, update, delete
 - taxonomy terms: list, create, update, delete
-- media: list, get, delete
+- media: list, get, HTTPS upload, metadata update, delete
 - options: get, update, delete with protected-option safeguards
 - cron: list, schedule, run, delete
 - transients: get, set, delete
+- comments: list/get/create/update/delete plus approve/spam/trash moderation
 - object cache, rewrite rules, database optimization, and update checks
 
 The project intentionally does not expose Plugin File Editor, arbitrary PHP evaluation, raw SQL execution, shell commands, or unrestricted filesystem/network operations.
@@ -144,7 +232,7 @@ The project intentionally does not expose Plugin File Editor, arbitrary PHP eval
 
 Plugin management follows WordPress Admin/Core behavior rather than introducing a second management engine. Plugin File Editor is deliberately not exposed. Must-Use plugins are inventory-only because normal WordPress Admin does not provide lifecycle management for them.
 
-Single-site and Multisite plugin-management E2E flows are required CI gates.
+Single-site and Multisite plugin/theme-management E2E flows are required CI gates. CI also enforces WordPress Coding Standards, PHPUnit contracts, Composer advisory audit, WordPress-aware PHPStan analysis, and an installable release-ZIP smoke test.
 
 ## Releases
 
