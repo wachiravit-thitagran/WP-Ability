@@ -45,6 +45,7 @@ final class Plugin_Abilities {
 		$this->register_plugin_install_package();
 		$this->register_plugin_update();
 		$this->register_plugin_auto_updates();
+		$this->register_plugin_bulk_actions();
 		$this->register_plugin_discovery();
 		$this->register_plugin_management();
 	}
@@ -235,6 +236,69 @@ final class Plugin_Abilities {
 				'execute_callback'    => array( $this, 'plugin_disable_auto_update' ),
 				'permission_callback' => array( $this, 'can_update_plugins' ),
 				'meta'                => $this->meta( false, false, true ),
+			)
+		);
+	}
+
+
+	/**
+	 * Register plugin bulk lifecycle abilities.
+	 *
+	 * @return void
+	 */
+	private function register_plugin_bulk_actions() {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'plugin_files' => array(
+					'type'     => 'array',
+					'minItems' => 1,
+					'items'    => array(
+						'type'      => 'string',
+						'minLength' => 1,
+					),
+				),
+			),
+			'required'             => array( 'plugin_files' ),
+			'additionalProperties' => false,
+		);
+
+		wp_register_ability(
+			'wordpress/plugin-activate-many',
+			array(
+				'label'               => __( 'Activate WordPress Plugins', 'wp-ability' ),
+				'description'         => __( 'Activates multiple installed WordPress plugins using WordPress Core.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $schema,
+				'execute_callback'    => array( $this, 'plugin_activate_many' ),
+				'permission_callback' => array( $this, 'can_activate_plugins' ),
+				'meta'                => $this->meta( false, false, true ),
+			)
+		);
+
+		wp_register_ability(
+			'wordpress/plugin-deactivate-many',
+			array(
+				'label'               => __( 'Deactivate WordPress Plugins', 'wp-ability' ),
+				'description'         => __( 'Deactivates multiple installed WordPress plugins using WordPress Core.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $schema,
+				'execute_callback'    => array( $this, 'plugin_deactivate_many' ),
+				'permission_callback' => array( $this, 'can_activate_plugins' ),
+				'meta'                => $this->meta( false, false, true ),
+			)
+		);
+
+		wp_register_ability(
+			'wordpress/plugin-delete-many',
+			array(
+				'label'               => __( 'Delete WordPress Plugins', 'wp-ability' ),
+				'description'         => __( 'Deletes multiple installed inactive WordPress plugins using WordPress Core.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $schema,
+				'execute_callback'    => array( $this, 'plugin_delete_many' ),
+				'permission_callback' => array( $this, 'can_delete_plugins' ),
+				'meta'                => $this->meta( false, true, true ),
 			)
 		);
 	}
@@ -714,6 +778,105 @@ final class Plugin_Abilities {
 		return array(
 			'plugin_file'         => $plugin_file,
 			'auto_update_enabled' => false,
+		);
+	}
+
+
+	/**
+	 * Normalize and validate installed plugin files.
+	 *
+	 * @param array $plugin_files Plugin files.
+	 * @return array|\WP_Error
+	 */
+	private function installed_plugin_files( array $plugin_files ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		$installed = get_plugins();
+		$files     = array();
+
+		foreach ( $plugin_files as $plugin_file ) {
+			$plugin_file = plugin_basename( sanitize_text_field( $plugin_file ) );
+			if ( ! isset( $installed[ $plugin_file ] ) ) {
+				return new \WP_Error(
+					'wp_ability_plugin_not_found',
+					__( 'One or more requested plugins are not installed.', 'wp-ability' )
+				);
+			}
+			$files[] = $plugin_file;
+		}
+
+		return array_values( array_unique( $files ) );
+	}
+
+	/**
+	 * Activate multiple plugins using WordPress Core.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_activate_many( array $input ) {
+		$plugin_files = $this->installed_plugin_files( $input['plugin_files'] );
+		if ( is_wp_error( $plugin_files ) ) {
+			return $plugin_files;
+		}
+
+		$result = activate_plugins( $plugin_files );
+
+		return array(
+			'plugin_files' => $plugin_files,
+			'results'      => json_decode( wp_json_encode( $result ), true ),
+		);
+	}
+
+	/**
+	 * Deactivate multiple plugins using WordPress Core.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_deactivate_many( array $input ) {
+		$plugin_files = $this->installed_plugin_files( $input['plugin_files'] );
+		if ( is_wp_error( $plugin_files ) ) {
+			return $plugin_files;
+		}
+
+		deactivate_plugins( $plugin_files );
+
+		return array(
+			'plugin_files' => $plugin_files,
+			'deactivated'  => true,
+		);
+	}
+
+	/**
+	 * Delete multiple inactive plugins using WordPress Core.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_delete_many( array $input ) {
+		$plugin_files = $this->installed_plugin_files( $input['plugin_files'] );
+		if ( is_wp_error( $plugin_files ) ) {
+			return $plugin_files;
+		}
+
+		foreach ( $plugin_files as $plugin_file ) {
+			if ( is_plugin_active( $plugin_file ) || ( is_multisite() && is_plugin_active_for_network( $plugin_file ) ) ) {
+				return new \WP_Error(
+					'wp_ability_plugin_active',
+					__( 'Deactivate all selected plugins before deleting them.', 'wp-ability' )
+				);
+			}
+		}
+
+		$result = delete_plugins( $plugin_files );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array(
+			'plugin_files' => $plugin_files,
+			'deleted'      => true,
 		);
 	}
 
