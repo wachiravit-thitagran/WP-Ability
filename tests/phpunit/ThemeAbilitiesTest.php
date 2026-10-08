@@ -65,4 +65,52 @@ class ThemeAbilitiesTest extends WP_UnitTestCase {
 			$body
 		);
 	}
+
+	/**
+	 * Theme management capabilities follow WordPress Core roles.
+	 *
+	 * @return void
+	 */
+	public function test_theme_management_requires_core_capabilities(): void {
+		$themes     = new Theme_Abilities();
+		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+
+		wp_set_current_user( $subscriber );
+		$this->assertFalse( $themes->can_switch_themes() );
+		$this->assertFalse( $themes->can_install_themes() );
+		$this->assertFalse( $themes->can_update_themes() );
+		$this->assertFalse( $themes->can_delete_themes() );
+
+		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $administrator );
+		$this->assertTrue( $themes->can_switch_themes() );
+		$this->assertTrue( $themes->can_install_themes() );
+		$this->assertTrue( $themes->can_update_themes() );
+		$this->assertTrue( $themes->can_delete_themes() );
+	}
+
+	/**
+	 * Theme auto-update toggles preserve unrelated Core state.
+	 *
+	 * @return void
+	 */
+	public function test_theme_auto_update_preserves_unrelated_entries(): void {
+		$themes     = new Theme_Abilities();
+		$stylesheet = get_stylesheet();
+		$unrelated  = 'wp-ability-unrelated-theme';
+
+		update_site_option( 'auto_update_themes', array( $unrelated ) );
+
+		$enabled = $themes->theme_enable_auto_update( array( 'stylesheet' => $stylesheet ) );
+		$this->assertIsArray( $enabled );
+		$this->assertContains( $unrelated, get_site_option( 'auto_update_themes', array() ) );
+		$this->assertContains( $stylesheet, get_site_option( 'auto_update_themes', array() ) );
+
+		$disabled = $themes->theme_disable_auto_update( array( 'stylesheet' => $stylesheet ) );
+		$this->assertIsArray( $disabled );
+		$this->assertContains( $unrelated, get_site_option( 'auto_update_themes', array() ) );
+		$this->assertNotContains( $stylesheet, get_site_option( 'auto_update_themes', array() ) );
+
+		delete_site_option( 'auto_update_themes' );
+	}
 }
