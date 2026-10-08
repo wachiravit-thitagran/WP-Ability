@@ -128,13 +128,13 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_plugin_install_package_requires_install_plugins(): void {
-		$abilities  = new Abilities();
+		$plugins    = new Plugin_Abilities();
 		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 
 		wp_set_current_user( $subscriber );
 
 		$this->assertFalse(
-			$abilities->can_install_plugin_package(
+			$plugins->can_install_plugin_package(
 				array(
 					'package_url' => 'https://example.com/plugin.zip',
 					'overwrite'   => false,
@@ -150,7 +150,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_plugin_install_package_overwrite_requires_update_plugins(): void {
-		$abilities = new Abilities();
+		$plugins   = new Plugin_Abilities();
 		$user_id   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$user      = new WP_User( $user_id );
 
@@ -159,7 +159,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 
 		$this->assertFalse(
-			$abilities->can_install_plugin_package(
+			$plugins->can_install_plugin_package(
 				array(
 					'package_url' => 'https://example.com/plugin.zip',
 					'overwrite'   => true,
@@ -173,7 +173,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 
 		$this->assertTrue(
-			$abilities->can_install_plugin_package(
+			$plugins->can_install_plugin_package(
 				array(
 					'package_url' => 'https://example.com/plugin.zip',
 					'overwrite'   => true,
@@ -189,7 +189,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_plugin_install_package_activation_requires_activate_plugins(): void {
-		$abilities = new Abilities();
+		$plugins   = new Plugin_Abilities();
 		$user_id   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$user      = new WP_User( $user_id );
 
@@ -198,7 +198,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 
 		$this->assertFalse(
-			$abilities->can_install_plugin_package(
+			$plugins->can_install_plugin_package(
 				array(
 					'package_url' => 'https://example.com/plugin.zip',
 					'overwrite'   => false,
@@ -212,7 +212,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 
 		$this->assertTrue(
-			$abilities->can_install_plugin_package(
+			$plugins->can_install_plugin_package(
 				array(
 					'package_url' => 'https://example.com/plugin.zip',
 					'overwrite'   => false,
@@ -246,7 +246,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 			}
 		};
 
-		$abilities = new Abilities( $installer );
+		$abilities = new Plugin_Abilities( $installer );
 		$result    = $abilities->plugin_install_package(
 			array(
 				'package_url' => 'https://example.com/plugin.zip',
@@ -282,7 +282,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 			}
 		};
 
-		$abilities = new Abilities( $installer );
+		$abilities = new Plugin_Abilities( $installer );
 		$result    = $abilities->plugin_install_package(
 			array(
 				'package_url' => 'https://example.com/plugin.zip',
@@ -299,7 +299,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_option_update_permission_requires_manage_options(): void {
-		$abilities = new Abilities();
+		$plugins    = new Plugin_Abilities();
 
 		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $subscriber );
@@ -316,18 +316,19 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_core_abilities_require_expected_capabilities(): void {
-		$core = new Core_Abilities();
+		$core    = new Core_Abilities();
+		$plugins = new Plugin_Abilities();
 
 		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $subscriber );
-		$this->assertFalse( $core->can_activate_plugins() );
+		$this->assertFalse( $plugins->can_activate_plugins() );
 		$this->assertFalse( $core->can_switch_themes() );
 		$this->assertFalse( $core->can_list_users() );
 		$this->assertFalse( $core->can_manage_options() );
 
 		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $administrator );
-		$this->assertTrue( $core->can_activate_plugins() );
+		$this->assertTrue( $plugins->can_activate_plugins() );
 		$this->assertTrue( $core->can_switch_themes() );
 		$this->assertTrue( $core->can_list_users() );
 		$this->assertTrue( $core->can_manage_options() );
