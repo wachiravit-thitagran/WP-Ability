@@ -498,4 +498,28 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertSame( 'wp_ability_plugin_active', $result->get_error_code() );
 		$this->assertFileExists( $this->plugin_file );
 	}
+
+	/**
+	 * Plugin inventory exposes WordPress Core dependency status.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_get_exposes_core_dependency_status(): void {
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_get(
+			array(
+				'plugin_file' => 'wp-ability-inventory-fixture/fixture.php',
+			)
+		);
+
+		$this->assertArrayHasKey( 'dependencies', $result );
+		$this->assertArrayHasKey( 'has_unmet_dependencies', $result );
+		$this->assertArrayHasKey( 'has_dependents', $result );
+		$this->assertArrayHasKey( 'has_active_dependents', $result );
+		$this->assertSame( array(), $result['dependencies'] );
+		$this->assertFalse( $result['has_unmet_dependencies'] );
+		$this->assertFalse( $result['has_dependents'] );
+		$this->assertFalse( $result['has_active_dependents'] );
+	}
+
 }
