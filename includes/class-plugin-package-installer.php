@@ -125,6 +125,10 @@ final class Plugin_Package_Installer {
 			return $result;
 		}
 
+		if ( isset( $upgrader->skin->result ) && is_wp_error( $upgrader->skin->result ) ) {
+			return $upgrader->skin->result;
+		}
+
 		if ( false === $result ) {
 			return new \WP_Error(
 				'wp_ability_plugin_package_install_failed',
