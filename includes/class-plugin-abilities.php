@@ -78,7 +78,7 @@ final class Plugin_Abilities {
 	 * @return void
 	 */
 	private function register_plugin_install() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-install',
 			array(
 				'label'               => __( 'Install WordPress Plugin', 'wp-ability' ),
@@ -114,7 +114,7 @@ final class Plugin_Abilities {
 	 * @return void
 	 */
 	private function register_plugin_install_package() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-install-package',
 			array(
 				'label'               => __( 'Install WordPress Plugin Package', 'wp-ability' ),
@@ -153,7 +153,7 @@ final class Plugin_Abilities {
 	 * @return void
 	 */
 	private function register_plugin_update() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-update',
 			array(
 				'label'               => __( 'Update WordPress Plugin', 'wp-ability' ),
@@ -166,7 +166,7 @@ final class Plugin_Abilities {
 			)
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-check-updates',
 			array(
 				'label'               => __( 'Check WordPress Plugin Updates', 'wp-ability' ),
@@ -179,7 +179,7 @@ final class Plugin_Abilities {
 			)
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-update-many',
 			array(
 				'label'               => __( 'Update WordPress Plugins', 'wp-ability' ),
@@ -214,7 +214,7 @@ final class Plugin_Abilities {
 	 * @return void
 	 */
 	private function register_plugin_auto_updates() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-enable-auto-update',
 			array(
 				'label'               => __( 'Enable WordPress Plugin Auto-Update', 'wp-ability' ),
@@ -227,7 +227,7 @@ final class Plugin_Abilities {
 			)
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-disable-auto-update',
 			array(
 				'label'               => __( 'Disable WordPress Plugin Auto-Update', 'wp-ability' ),
@@ -264,7 +264,7 @@ final class Plugin_Abilities {
 			'additionalProperties' => false,
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-activate-many',
 			array(
 				'label'               => __( 'Activate WordPress Plugins', 'wp-ability' ),
@@ -277,7 +277,7 @@ final class Plugin_Abilities {
 			)
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-deactivate-many',
 			array(
 				'label'               => __( 'Deactivate WordPress Plugins', 'wp-ability' ),
@@ -290,7 +290,7 @@ final class Plugin_Abilities {
 			)
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-delete-many',
 			array(
 				'label'               => __( 'Delete WordPress Plugins', 'wp-ability' ),
@@ -311,7 +311,7 @@ final class Plugin_Abilities {
 	 * @return void
 	 */
 	private function register_plugin_network_actions() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-network-activate',
 			array(
 				'label'               => __( 'Network Activate WordPress Plugin', 'wp-ability' ),
@@ -324,7 +324,7 @@ final class Plugin_Abilities {
 			)
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-network-deactivate',
 			array(
 				'label'               => __( 'Network Deactivate WordPress Plugin', 'wp-ability' ),
@@ -345,7 +345,7 @@ final class Plugin_Abilities {
 	 * @return void
 	 */
 	private function register_plugin_discovery() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-search',
 			array(
 				'label'               => __( 'Search WordPress Plugins', 'wp-ability' ),
@@ -378,7 +378,7 @@ final class Plugin_Abilities {
 			)
 		);
 
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-get-information',
 			array(
 				'label'               => __( 'Get WordPress.org Plugin Information', 'wp-ability' ),
@@ -408,7 +408,7 @@ final class Plugin_Abilities {
 	 * @return void
 	 */
 	private function register_plugin_management() {
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-list',
 			array(
 				'label'               => __( 'List WordPress Plugins', 'wp-ability' ),
@@ -420,7 +420,7 @@ final class Plugin_Abilities {
 				'meta'                => $this->meta( true, false, true ),
 			)
 		);
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-activate',
 			array(
 				'label'               => __( 'Activate WordPress Plugin', 'wp-ability' ),
@@ -432,7 +432,7 @@ final class Plugin_Abilities {
 				'meta'                => $this->meta( false, false, true ),
 			)
 		);
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-deactivate',
 			array(
 				'label'               => __( 'Deactivate WordPress Plugin', 'wp-ability' ),
@@ -444,7 +444,7 @@ final class Plugin_Abilities {
 				'meta'                => $this->meta( false, false, true ),
 			)
 		);
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-get',
 			array(
 				'label'               => __( 'Get WordPress Plugin', 'wp-ability' ),
@@ -456,7 +456,7 @@ final class Plugin_Abilities {
 				'meta'                => $this->meta( true, false, true ),
 			)
 		);
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-mu-list',
 			array(
 				'label'               => __( 'List WordPress Must-Use Plugins', 'wp-ability' ),
@@ -468,7 +468,7 @@ final class Plugin_Abilities {
 				'meta'                => $this->meta( true, false, true ),
 			)
 		);
-		wp_register_ability(
+		Ability_Registrar::register(
 			'wordpress/plugin-delete',
 			array(
 				'label'               => __( 'Delete WordPress Plugin', 'wp-ability' ),
