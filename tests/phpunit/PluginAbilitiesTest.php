@@ -303,4 +303,82 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'plugins_api_failed', $result->get_error_code() );
 	}
+
+	/**
+	 * Plugin update management abilities are registered.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_update_management_abilities_are_registered(): void {
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-check-updates' ) );
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-update-many' ) );
+	}
+
+	/**
+	 * Plugin update management requires update_plugins.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_update_management_requires_update_plugins(): void {
+		$plugins    = new Plugin_Abilities();
+		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		wp_set_current_user( $subscriber );
+		$this->assertFalse( $plugins->can_update_plugins() );
+
+		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $administrator );
+		$this->assertTrue( $plugins->can_update_plugins() );
+	}
+
+	/**
+	 * Plugin update checks return the WordPress Core update transient.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_check_updates_returns_core_update_metadata(): void {
+		$fixture = (object) array(
+			'last_checked' => time(),
+			'checked'      => array(
+				'wp-ability-inventory-fixture/fixture.php' => '1.2.3',
+			),
+			'response'     => array(
+				'wp-ability-inventory-fixture/fixture.php' => (object) array(
+					'plugin'      => 'wp-ability-inventory-fixture/fixture.php',
+					'new_version' => '2.0.0',
+				),
+			),
+			'no_update'    => array(),
+		);
+		set_site_transient( 'update_plugins', $fixture );
+
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_check_updates();
+
+		$this->assertArrayHasKey( 'updates', $result );
+		$this->assertSame(
+			'2.0.0',
+			$result['updates']['response']['wp-ability-inventory-fixture/fixture.php']['new_version']
+		);
+	}
+
+	/**
+	 * Bulk plugin update rejects plugin files that are not installed.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_update_many_rejects_unknown_plugin(): void {
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_update_many(
+			array(
+				'plugin_files' => array(
+					'wp-ability-inventory-fixture/fixture.php',
+					'missing/missing.php',
+				),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'wp_ability_plugin_not_found', $result->get_error_code() );
+	}
+
 }
