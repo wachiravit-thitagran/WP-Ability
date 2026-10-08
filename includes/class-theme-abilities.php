@@ -62,7 +62,7 @@ final class Theme_Abilities {
 	 * @return void
 	 */
 	private function register( $name, $label, $description, array $schema, $execute, $permission, $readonly, $destructive, $idempotent, $open_world = false ) {
-		wp_register_ability(
+		Ability_Registrar::register(
 			$name,
 			array(
 				'label'               => $label,
