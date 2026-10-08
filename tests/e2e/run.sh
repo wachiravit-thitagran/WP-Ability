@@ -104,15 +104,25 @@ curl -kfsS "https://127.0.0.1:$PORT/fixture-v1.zip" -o /dev/null
 
 "${WP[@]}" plugin is-active wordpress-abilities-bridge
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" ability
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" discovery
 
 PACKAGE_V1="https://127.0.0.1:$PORT/fixture-v1.zip"
 PACKAGE_V2="https://127.0.0.1:$PORT/fixture-v2.zip"
 
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" install "$PACKAGE_V1" false true
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-version 1.0.0 active
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-inventory 1.0.0 active false
 
-"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" install "$PACKAGE_V2" true true
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" auto-update true
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-inventory 1.0.0 active true
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" auto-update false
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-inventory 1.0.0 active false
+
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" prime-update "$PACKAGE_V2"
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" check-update
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" update
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-version 2.0.0 active
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-inventory 2.0.0 active false
 
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" deactivate
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-version 2.0.0 inactive
@@ -120,4 +130,4 @@ PACKAGE_V2="https://127.0.0.1:$PORT/fixture-v2.zip"
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" delete
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/assert-flow.php" assert-absent
 
-echo "PASS: native plugin package ability E2E flow"
+echo "PASS: complete single-site plugin management E2E flow"
