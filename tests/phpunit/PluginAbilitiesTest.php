@@ -378,4 +378,65 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'wp_ability_plugin_not_found', $result->get_error_code() );
 	}
+
+	/**
+	 * Plugin auto-update abilities are registered.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_auto_update_abilities_are_registered(): void {
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-enable-auto-update' ) );
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-disable-auto-update' ) );
+	}
+
+	/**
+	 * Enabling auto-update preserves unrelated plugin entries.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_enable_auto_update_preserves_unrelated_entries(): void {
+		update_site_option( 'auto_update_plugins', array( 'other/other.php' ) );
+
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_enable_auto_update(
+			array(
+				'plugin_file' => 'wp-ability-inventory-fixture/fixture.php',
+			)
+		);
+
+		$this->assertTrue( $result['auto_update_enabled'] );
+		$this->assertSame(
+			array(
+				'other/other.php',
+				'wp-ability-inventory-fixture/fixture.php',
+			),
+			get_site_option( 'auto_update_plugins' )
+		);
+	}
+
+	/**
+	 * Disabling auto-update removes only the selected plugin entry.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_disable_auto_update_preserves_unrelated_entries(): void {
+		update_site_option(
+			'auto_update_plugins',
+			array(
+				'other/other.php',
+				'wp-ability-inventory-fixture/fixture.php',
+			)
+		);
+
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_disable_auto_update(
+			array(
+				'plugin_file' => 'wp-ability-inventory-fixture/fixture.php',
+			)
+		);
+
+		$this->assertFalse( $result['auto_update_enabled'] );
+		$this->assertSame( array( 'other/other.php' ), get_site_option( 'auto_update_plugins' ) );
+	}
+
 }
