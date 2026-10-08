@@ -3,7 +3,7 @@
  * Plugin Name: WordPress Abilities Bridge
  * Plugin URI: https://github.com/wachiravit-thitagran/WordPress-Abilities-Bridge
  * Description: Exposes WordPress Core functionality as secure, permission-aware abilities through the native WordPress Abilities API.
- * Version: 0.3.2
+ * Version: 0.4.0
  * Requires at least: 6.9
  * Requires PHP: 7.4
  * Author: Wachiravit Thitagran
