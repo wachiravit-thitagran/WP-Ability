@@ -101,13 +101,25 @@ final class Plugin_Package_Installer {
 			return $upgrader;
 		}
 
-		$result = $upgrader->install(
-			$package_url,
-			array(
-				'overwrite_package'  => $overwrite,
-				'clear_update_cache' => true,
-			)
-		);
+		$verifier = null;
+		if ( ! empty( $input['expected_sha256'] ) ) {
+			$verifier = new Package_Integrity_Verifier( $input['expected_sha256'] );
+			add_filter( 'upgrader_pre_download', array( $verifier, 'verify' ), 10, 4 );
+		}
+
+		try {
+			$result = $upgrader->install(
+				$package_url,
+				array(
+					'overwrite_package'  => $overwrite,
+					'clear_update_cache' => true,
+				)
+			);
+		} finally {
+			if ( $verifier ) {
+				remove_filter( 'upgrader_pre_download', array( $verifier, 'verify' ), 10 );
+			}
+		}
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
