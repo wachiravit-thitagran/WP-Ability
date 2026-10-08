@@ -8,7 +8,8 @@
     "yoast/phpunit-polyfills": "^1.0",
     "squizlabs/php_codesniffer": "*",
     "wp-coding-standards/wpcs": "*",
-    "dealerdirect/phpcodesniffer-composer-installer": "*"
+    "dealerdirect/phpcodesniffer-composer-installer": "*",
+    "szepeviktor/phpstan-wordpress": "^2.0.4"
   },
   "config": {
     "allow-plugins": {
@@ -17,6 +18,7 @@
   },
   "scripts": {
     "lint": "phpcs -n --standard=phpcs.xml.dist wp-ability.php includes tests",
-    "test": "phpunit"
+    "test": "phpunit",
+    "analyse": "phpstan analyse --configuration=phpstan.neon --no-progress"
   }
 }
