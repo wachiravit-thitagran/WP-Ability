@@ -438,4 +438,65 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertFalse( $result['auto_update_enabled'] );
 		$this->assertSame( array( 'other/other.php' ), get_site_option( 'auto_update_plugins' ) );
 	}
+
+	/**
+	 * Plugin bulk lifecycle abilities are registered.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_bulk_lifecycle_abilities_are_registered(): void {
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-activate-many' ) );
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-deactivate-many' ) );
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-delete-many' ) );
+	}
+
+	/**
+	 * Bulk activate and deactivate delegate to Core plugin state.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_activate_many_and_deactivate_many_change_core_state(): void {
+		$plugins = new Plugin_Abilities();
+		$file    = 'wp-ability-inventory-fixture/fixture.php';
+
+		$activated = $plugins->plugin_activate_many(
+			array(
+				'plugin_files' => array( $file ),
+			)
+		);
+
+		$this->assertIsArray( $activated );
+		$this->assertTrue( is_plugin_active( $file ) );
+
+		$deactivated = $plugins->plugin_deactivate_many(
+			array(
+				'plugin_files' => array( $file ),
+			)
+		);
+
+		$this->assertIsArray( $deactivated );
+		$this->assertFalse( is_plugin_active( $file ) );
+	}
+
+	/**
+	 * Bulk delete refuses active plugins like the WordPress Plugins UI.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_delete_many_rejects_active_plugin(): void {
+		$file = 'wp-ability-inventory-fixture/fixture.php';
+		activate_plugin( $file );
+
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_delete_many(
+			array(
+				'plugin_files' => array( $file ),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'wp_ability_plugin_active', $result->get_error_code() );
+		$this->assertFileExists( $this->plugin_file );
+	}
+
 }
