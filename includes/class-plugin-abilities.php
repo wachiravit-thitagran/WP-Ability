@@ -678,14 +678,20 @@ final class Plugin_Abilities {
 		}
 
 		wp_update_plugins();
-		$skin     = new \Automatic_Upgrader_Skin();
+		$skin     = new \WP_Ajax_Upgrader_Skin();
 		$upgrader = new \Plugin_Upgrader( $skin );
-		$result   = $upgrader->upgrade( $plugin_file );
-		if ( is_wp_error( $result ) ) {
-			return $result;
+		$result   = $upgrader->bulk_upgrade( array( $plugin_file ) );
+
+		if ( is_wp_error( $skin->result ) ) {
+			return $skin->result;
 		}
-		if ( false === $result ) {
+
+		if ( false === $result || empty( $result[ $plugin_file ] ) || true === $result[ $plugin_file ] ) {
 			return new \WP_Error( 'wp_ability_plugin_update_failed', __( 'Plugin update failed or no update was available.', 'wp-ability' ) );
+		}
+
+		if ( is_wp_error( $result[ $plugin_file ] ) ) {
+			return $result[ $plugin_file ];
 		}
 
 		return array(
