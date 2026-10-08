@@ -22,9 +22,8 @@ final class Ability_Registrar {
 	 * @return mixed
 	 */
 	public static function register( $name, array $args ) {
-		$existing = function_exists( 'wp_get_ability' ) ? wp_get_ability( $name ) : null;
-		if ( $existing ) {
-			return $existing;
+		if ( function_exists( 'wp_has_ability' ) && wp_has_ability( $name ) ) {
+			return wp_get_ability( $name );
 		}
 
 		$args['input_schema'] = Ability_Schemas::annotate(
@@ -50,7 +49,7 @@ final class Ability_Registrar {
 		$equivalent = self::core_equivalent( $name );
 		if ( $equivalent ) {
 			$args['meta']['coreEquivalent'] = $equivalent;
-			$args['meta']['coreEquivalentAvailable'] = function_exists( 'wp_get_ability' ) && (bool) wp_get_ability( $equivalent );
+			$args['meta']['coreEquivalentAvailable'] = function_exists( 'wp_has_ability' ) && wp_has_ability( $equivalent );
 		}
 
 		return wp_register_ability( $name, $args );
