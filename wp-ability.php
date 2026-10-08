@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/includes/class-plugin-package-installer.php';
 require_once __DIR__ . '/includes/class-abilities.php';
+require_once __DIR__ . '/includes/class-plugin-abilities.php';
 require_once __DIR__ . '/includes/class-core-abilities.php';
 
 /**
@@ -26,6 +27,7 @@ require_once __DIR__ . '/includes/class-core-abilities.php';
  */
 function wp_ability_boot() {
 	new WP_Ability\Abilities();
+	new WP_Ability\Plugin_Abilities();
 	new WP_Ability\Core_Abilities();
 }
 add_action( 'plugins_loaded', 'wp_ability_boot' );
