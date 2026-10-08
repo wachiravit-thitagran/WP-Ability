@@ -274,4 +274,44 @@ class LifecycleHardeningTest extends WP_UnitTestCase {
 
 		$this->assertFalse( $result );
 	}
+
+	/**
+	 * GitHub self-update is not offered unless the release asset exposes a valid SHA-256.
+	 *
+	 * @return void
+	 */
+	public function test_self_updater_requires_valid_release_digest(): void {
+		add_filter( 'wp_ability_github_updates_enabled', '__return_true' );
+
+		$updater = new GitHub_Self_Updater(
+			static function () {
+				return array(
+					'response' => array( 'code' => 200 ),
+					'body'     => wp_json_encode(
+						array(
+							'tag_name' => 'v9.9.9',
+							'html_url' => 'https://github.com/example/release',
+							'assets'   => array(
+								array(
+									'name'                 => 'wp-ability-9.9.9.zip',
+									'browser_download_url' => 'https://github.com/example/wp-ability-9.9.9.zip',
+									'digest'               => 'sha256:not-a-valid-digest',
+								),
+							),
+						)
+					),
+				);
+			}
+		);
+
+		$transient = (object) array(
+			'checked'  => array( GitHub_Self_Updater::PLUGIN_FILE => '0.5.0' ),
+			'response' => array(),
+		);
+		$result = $updater->inject_update( $transient );
+
+		remove_filter( 'wp_ability_github_updates_enabled', '__return_true' );
+
+		$this->assertArrayNotHasKey( GitHub_Self_Updater::PLUGIN_FILE, $result->response );
+	}
 }
