@@ -62,6 +62,33 @@ switch ( $command ) {
 		WP_CLI::success( 'Theme-management abilities are registered.' );
 		break;
 
+	case 'discovery':
+		$search = wp_ability_theme_e2e_success(
+			wp_ability_theme_e2e_ability( 'wordpress/theme-search' )->execute(
+				array(
+					'search'   => 'twenty twenty-five',
+					'page'     => 1,
+					'per_page' => 5,
+				)
+			),
+			'Theme search'
+		);
+		if ( empty( $search['themes'] ) ) {
+			WP_CLI::error( 'WordPress.org theme search returned no results.' );
+		}
+
+		$info = wp_ability_theme_e2e_success(
+			wp_ability_theme_e2e_ability( 'wordpress/theme-get-information' )->execute(
+				array( 'slug' => 'twentytwentyfive' )
+			),
+			'Theme information'
+		);
+		if ( 'twentytwentyfive' !== $info['slug'] ) {
+			WP_CLI::error( 'Theme information returned an unexpected slug.' );
+		}
+		WP_CLI::success( 'WordPress.org theme discovery uses Core successfully.' );
+		break;
+
 	case 'remember-fallback':
 		update_option( 'wp_ability_e2e_theme_fallback', get_stylesheet(), false );
 		break;
