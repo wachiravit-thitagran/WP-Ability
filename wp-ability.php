@@ -15,6 +15,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+defined( 'WP_ABILITY_VERSION' ) || define( 'WP_ABILITY_VERSION', '0.4.0' );
+
 require_once __DIR__ . '/includes/class-ability-schemas.php';
 require_once __DIR__ . '/includes/class-ability-registrar.php';
 require_once __DIR__ . '/includes/class-domain-abilities-base.php';
@@ -26,6 +28,9 @@ require_once __DIR__ . '/includes/class-option-abilities.php';
 require_once __DIR__ . '/includes/class-cron-abilities.php';
 require_once __DIR__ . '/includes/class-maintenance-abilities.php';
 require_once __DIR__ . '/includes/class-comment-abilities.php';
+require_once __DIR__ . '/includes/class-package-integrity-verifier.php';
+require_once __DIR__ . '/includes/class-github-self-updater.php';
+require_once __DIR__ . '/includes/class-audit-context.php';
 require_once __DIR__ . '/includes/class-plugin-package-installer.php';
 require_once __DIR__ . '/includes/class-abilities.php';
 require_once __DIR__ . '/includes/class-plugin-abilities.php';
@@ -49,5 +54,7 @@ function wp_ability_boot() {
 	new WP_Ability\Cron_Abilities();
 	new WP_Ability\Maintenance_Abilities();
 	new WP_Ability\Comment_Abilities();
+	new WP_Ability\GitHub_Self_Updater();
+	new WP_Ability\Audit_Context();
 }
 add_action( 'plugins_loaded', 'wp_ability_boot' );
