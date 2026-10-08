@@ -905,6 +905,7 @@ final class Plugin_Abilities {
 	 * @return array|\WP_Error
 	 */
 	public function plugin_delete_many( array $input ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 		$plugin_files = $this->installed_plugin_files( $input['plugin_files'] );
 		if ( is_wp_error( $plugin_files ) ) {
 			return $plugin_files;
@@ -1185,6 +1186,7 @@ final class Plugin_Abilities {
 	 * @return array|\WP_Error
 	 */
 	public function plugin_delete( array $input ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$file = plugin_basename( sanitize_text_field( $input['plugin_file'] ) );
 		if ( ! isset( get_plugins()[ $file ] ) ) {
