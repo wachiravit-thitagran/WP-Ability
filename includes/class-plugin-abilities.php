@@ -1056,15 +1056,21 @@ final class Plugin_Abilities {
 	 * @return array
 	 */
 	private function plugin_payload( $file, array $data, $updates ) {
+		\WP_Plugin_Dependencies::initialize();
+
 		return array(
-			'plugin_file'      => $file,
-			'name'             => $data['Name'],
-			'version'          => $data['Version'],
-			'author'           => $data['Author'],
-			'description'      => $data['Description'],
-			'active'           => is_plugin_active( $file ),
-			'network_active'   => is_multisite() && is_plugin_active_for_network( $file ),
-			'update_available' => is_object( $updates ) && isset( $updates->response[ $file ] ),
+			'plugin_file'              => $file,
+			'name'                     => $data['Name'],
+			'version'                  => $data['Version'],
+			'author'                   => $data['Author'],
+			'description'              => $data['Description'],
+			'active'                   => is_plugin_active( $file ),
+			'network_active'           => is_multisite() && is_plugin_active_for_network( $file ),
+			'update_available'         => is_object( $updates ) && isset( $updates->response[ $file ] ),
+			'dependencies'             => \WP_Plugin_Dependencies::get_dependencies( $file ),
+			'has_unmet_dependencies'   => \WP_Plugin_Dependencies::has_unmet_dependencies( $file ),
+			'has_dependents'           => \WP_Plugin_Dependencies::has_dependents( $file ),
+			'has_active_dependents'    => \WP_Plugin_Dependencies::has_active_dependents( $file ),
 		);
 	}
 
