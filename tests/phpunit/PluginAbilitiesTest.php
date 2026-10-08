@@ -567,5 +567,4 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 			$body
 		);
 	}
-
 }
