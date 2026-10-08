@@ -27,18 +27,7 @@ final class Core_Abilities {
 	 * @return void
 	 */
 	public function register_abilities() {
-		if ( ! function_exists( 'wp_register_ability' ) ) {
-			return;
-		}
-
-		$this->register_users();
-		$this->register_posts();
-		$this->register_terms();
-		$this->register_media();
-		$this->register_options();
-		$this->register_cron();
-		$this->register_transients();
-		$this->register_maintenance();
+		// Registration moved to focused domain classes; retained for backward compatibility.
 	}
 
 	/**
