@@ -101,4 +101,6 @@ PACKAGE_V2="https://127.0.0.1:$PORT/fixture-v2.zip"
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" delete
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" assert-absent
 
-echo "PASS: complete Multisite plugin management E2E flow"
+bash "$REPO_ROOT/tests/e2e-multisite/theme-run.sh"
+
+echo "PASS: complete Multisite plugin and theme management E2E flow"
