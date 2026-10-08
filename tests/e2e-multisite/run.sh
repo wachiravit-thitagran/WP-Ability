@@ -87,9 +87,11 @@ curl -kfsS "https://127.0.0.1:$PORT/fixture-v1.zip" -o /dev/null
 
 PACKAGE_V1="https://127.0.0.1:$PORT/fixture-v1.zip"
 PACKAGE_V2="https://127.0.0.1:$PORT/fixture-v2.zip"
+SHA_V1="$(sha256sum "$WWW_DIR/fixture-v1.zip" | awk '{print $1}')"
 
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" ability
-"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" install "$PACKAGE_V1"
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" install-checksum-mismatch "$PACKAGE_V1"
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" install "$PACKAGE_V1" "$SHA_V1"
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" assert-version 1.0.0
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" network-activate
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e-multisite/assert-flow.php" assert-network true
