@@ -56,7 +56,7 @@ final class Abilities {
 			'wordpress-admin',
 			array(
 				'label'       => __( 'WordPress Administration', 'wp-ability' ),
-				'description' => __( 'Administrative operations for plugins, users, options, media, scheduled tasks, caches, and database maintenance.', 'wp-ability' ),
+				'description' => __( 'Administrative operations for plugins, themes, users, content, taxonomy, media, comments, options, scheduled tasks, caches, and maintenance.', 'wp-ability' ),
 			)
 		);
 	}
