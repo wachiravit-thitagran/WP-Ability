@@ -7,6 +7,7 @@
 
 use WP_Ability\Abilities;
 use WP_Ability\Core_Abilities;
+use WP_Ability\Plugin_Abilities;
 
 /**
  * Test the WordPress administration abilities.
@@ -80,6 +81,37 @@ class AbilitiesTest extends WP_UnitTestCase {
 		}
 	}
 
+
+
+	/**
+	 * Plugin abilities are isolated in the plugin-domain wrapper.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_abilities_are_owned_by_plugin_abilities_class(): void {
+		$this->assertTrue( class_exists( Plugin_Abilities::class ) );
+
+		$plugins = new Plugin_Abilities();
+
+		$this->assertTrue( method_exists( $plugins, 'can_install_plugins' ) );
+		$this->assertTrue( method_exists( $plugins, 'can_update_plugins' ) );
+		$this->assertTrue( method_exists( $plugins, 'can_activate_plugins' ) );
+		$this->assertTrue( method_exists( $plugins, 'can_delete_plugins' ) );
+
+		foreach (
+			array(
+				'wordpress/plugin-list',
+				'wordpress/plugin-install',
+				'wordpress/plugin-install-package',
+				'wordpress/plugin-update',
+				'wordpress/plugin-activate',
+				'wordpress/plugin-deactivate',
+				'wordpress/plugin-delete',
+			) as $name
+		) {
+			$this->assertNotNull( wp_get_ability( $name ), $name . ' should remain registered.' );
+		}
+	}
 
 	/**
 	 * Plugin package ability is registered.
