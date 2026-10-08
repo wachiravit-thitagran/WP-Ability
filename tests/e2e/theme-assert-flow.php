@@ -139,6 +139,7 @@ switch ( $command ) {
 
 	case 'prime-update':
 		$package_url = isset( $args[1] ) ? $args[1] : '';
+		$new_version = isset( $args[2] ) ? $args[2] : '';
 		$checked     = array();
 		foreach ( wp_get_themes() as $slug => $theme ) {
 			$checked[ $slug ] = $theme->get( 'Version' );
@@ -151,7 +152,7 @@ switch ( $command ) {
 				'response'     => array(
 					$stylesheet => array(
 						'theme'       => $stylesheet,
-						'new_version' => '2.0.0',
+						'new_version' => $new_version,
 						'url'         => 'https://example.test/',
 						'package'     => $package_url,
 					),
@@ -166,8 +167,9 @@ switch ( $command ) {
 			wp_ability_theme_e2e_ability( 'wordpress/theme-check-updates' )->execute( array() ),
 			'Theme update check'
 		);
-		if ( '2.0.0' !== $result['updates']['response'][ $stylesheet ]['new_version'] ) {
-			WP_CLI::error( 'Theme update check did not return fixture v2.' );
+		$expected = isset( $args[1] ) ? $args[1] : '';
+		if ( $expected !== $result['updates']['response'][ $stylesheet ]['new_version'] ) {
+			WP_CLI::error( 'Theme update check did not return the expected fixture version.' );
 		}
 		break;
 
