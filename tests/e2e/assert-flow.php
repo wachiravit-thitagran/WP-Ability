@@ -67,7 +67,7 @@ switch ( $command ) {
 		break;
 
 	case 'discovery':
-		$search = wp_ability_e2e_require_success(
+		$search_result = wp_ability_e2e_require_success(
 			wp_ability_e2e_ability( 'wordpress/plugin-search' )->execute(
 				array(
 					'search'   => 'akismet',
@@ -77,7 +77,7 @@ switch ( $command ) {
 			),
 			'Plugin search'
 		);
-		if ( empty( $search['plugins'] ) ) {
+		if ( empty( $search_result['plugins'] ) ) {
 			WP_CLI::error( 'WordPress.org plugin search returned no results.' );
 		}
 
@@ -146,9 +146,9 @@ switch ( $command ) {
 			'Plugin list'
 		);
 		$list_item = null;
-		foreach ( $list['plugins'] as $plugin ) {
-			if ( $plugin_file === $plugin['plugin_file'] ) {
-				$list_item = $plugin;
+		foreach ( $list['plugins'] as $plugin_item ) {
+			if ( $plugin_file === $plugin_item['plugin_file'] ) {
+				$list_item = $plugin_item;
 				break;
 			}
 		}
