@@ -220,6 +220,11 @@ final class Theme_Abilities {
 					'type'    => 'boolean',
 					'default' => false,
 				),
+				'expected_sha256' => array(
+					'type'      => 'string',
+					'minLength' => 64,
+					'maxLength' => 64,
+				),
 			),
 			'required'             => array( 'package_url' ),
 			'additionalProperties' => false,
@@ -379,7 +384,7 @@ final class Theme_Abilities {
 			return new \WP_Error( 'wp_ability_theme_package_unavailable', __( 'Theme package is unavailable.', 'wp-ability' ) );
 		}
 
-		return $this->install_package_with_upgrader( $api->download_link, false, ! empty( $input['activate'] ) );
+		return $this->install_package_with_upgrader( $api->download_link, false, ! empty( $input['activate'] ), '' );
 	}
 
 	/**
@@ -401,7 +406,8 @@ final class Theme_Abilities {
 		return $this->install_package_with_upgrader(
 			$package_url,
 			! empty( $input['overwrite'] ),
-			! empty( $input['activate'] )
+			! empty( $input['activate'] ),
+			isset( $input['expected_sha256'] ) ? $input['expected_sha256'] : ''
 		);
 	}
 
@@ -543,18 +549,31 @@ final class Theme_Abilities {
 	 * @param string $package_url Package URL.
 	 * @param bool   $overwrite Whether to overwrite an existing theme.
 	 * @param bool   $activate Whether to activate after install.
+	 * @param string $expected_sha256 Optional expected SHA-256.
 	 * @return array|\WP_Error
 	 */
-	private function install_package_with_upgrader( $package_url, $overwrite, $activate ) {
+	private function install_package_with_upgrader( $package_url, $overwrite, $activate, $expected_sha256 ) {
 		$skin     = new \Automatic_Upgrader_Skin();
 		$upgrader = new \Theme_Upgrader( $skin );
-		$result   = $upgrader->install(
-			$package_url,
-			array(
-				'overwrite_package'  => (bool) $overwrite,
-				'clear_update_cache' => true,
-			)
-		);
+		$verifier = null;
+		if ( '' !== trim( (string) $expected_sha256 ) ) {
+			$verifier = new Package_Integrity_Verifier( $expected_sha256 );
+			add_filter( 'upgrader_pre_download', array( $verifier, 'verify' ), 10, 4 );
+		}
+
+		try {
+			$result = $upgrader->install(
+				$package_url,
+				array(
+					'overwrite_package'  => (bool) $overwrite,
+					'clear_update_cache' => true,
+				)
+			);
+		} finally {
+			if ( $verifier ) {
+				remove_filter( 'upgrader_pre_download', array( $verifier, 'verify' ), 10 );
+			}
+		}
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
