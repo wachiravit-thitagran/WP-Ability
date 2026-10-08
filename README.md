@@ -11,19 +11,34 @@ WordPress Abilities Bridge provides semantic, permission-aware operations that c
 
 The plugin remains safely inactive when the Abilities API is unavailable.
 
-## Abilities
+## Plugin abilities
 
-| Ability | Purpose | Required capability |
+Plugin management is intentionally a thin semantic wrapper over WordPress Core. The bridge does not replace WordPress' installer, upgrader, dependency system, activation state, auto-update system, or Multisite plugin state.
+
+| Ability | Core behavior | Required capability |
 | --- | --- | --- |
-| `wordpress/plugin-install` | Install a plugin from WordPress.org, optionally activate it | `install_plugins`, plus `activate_plugins` when activation is requested |
-| `wordpress/plugin-install-package` | Install or overwrite a plugin from an HTTPS ZIP package URL using WordPress Core `Plugin_Upgrader` | `install_plugins`, plus `update_plugins` for overwrite and `activate_plugins` for activation |
-| `wordpress/plugin-update` | Update one installed plugin | `update_plugins` |
-| `wordpress/user-create` | Create a WordPress user and assign an editable role | `create_users`, plus `promote_users` for non-subscriber roles |
-| `wordpress/option-update` | Update a JSON-compatible WordPress option | `manage_options` |
-| `wordpress/media-delete` | Delete or permanently delete an attachment | `delete_post` for the attachment |
-| `wordpress/cron-run` | Run one existing scheduled WordPress event | `manage_options` |
-| `wordpress/cache-flush` | Flush the active WordPress object cache | `manage_options` |
-| `wordpress/database-optimize` | Optimize WordPress-managed database tables | `manage_options` |
+| `wordpress/plugin-list` | `get_plugins()` plus Core activation/update/dependency state | `activate_plugins` |
+| `wordpress/plugin-get` | `get_plugins()` for one installed plugin | `activate_plugins` |
+| `wordpress/plugin-mu-list` | `get_mu_plugins()`, read-only | `activate_plugins` |
+| `wordpress/plugin-search` | `plugins_api( 'query_plugins' )` | `install_plugins` |
+| `wordpress/plugin-get-information` | `plugins_api( 'plugin_information' )` | `install_plugins` |
+| `wordpress/plugin-install` | WordPress.org metadata + `Plugin_Upgrader::install()` | `install_plugins`, plus `activate_plugins` when requested |
+| `wordpress/plugin-install-package` | `Plugin_Upgrader::install()` for HTTPS ZIPs | `install_plugins`, plus `update_plugins` for overwrite and `activate_plugins` for activation |
+| `wordpress/plugin-check-updates` | `wp_update_plugins()` + Core update transient | `update_plugins` |
+| `wordpress/plugin-update` | same Core upgrader path used by WordPress Admin AJAX | `update_plugins` |
+| `wordpress/plugin-update-many` | `Plugin_Upgrader::bulk_upgrade()` | `update_plugins` |
+| `wordpress/plugin-enable-auto-update` | Core `auto_update_plugins` state | `update_plugins` |
+| `wordpress/plugin-disable-auto-update` | Core `auto_update_plugins` state | `update_plugins` |
+| `wordpress/plugin-activate` | `activate_plugin()` | `activate_plugins` |
+| `wordpress/plugin-deactivate` | `deactivate_plugins()` | `activate_plugins` |
+| `wordpress/plugin-activate-many` | Core bulk activation API | `activate_plugins` |
+| `wordpress/plugin-deactivate-many` | `deactivate_plugins()` | `activate_plugins` |
+| `wordpress/plugin-delete` | `delete_plugins()` | `delete_plugins` |
+| `wordpress/plugin-delete-many` | `delete_plugins()` | `delete_plugins` |
+| `wordpress/plugin-network-activate` | `activate_plugin( ..., true )` | Multisite + `manage_network_plugins` |
+| `wordpress/plugin-network-deactivate` | `deactivate_plugins( ..., false, true )` | Multisite + `manage_network_plugins` |
+
+Other administrative abilities for users, options, media, cron, cache, database maintenance, themes, content, and taxonomy remain available as documented by ability discovery.
 
 ## Custom plugin packages
 
@@ -55,7 +70,7 @@ For normal MCP-driven custom ZIP installation and overwrite, the separate `WP-pl
 WP Ability is designed around semantic administrative operations rather than generic remote execution.
 
 - Every ability has a server-side WordPress capability check.
-- Plugin installation only accepts WordPress.org plugin slugs; arbitrary package URLs are not accepted.
+- WordPress.org installation uses plugin slugs; custom package installation is separately constrained to validated HTTPS ZIP URLs through `wordpress/plugin-install-package`.
 - Plugin updates only operate on plugins already registered by WordPress.
 - User passwords are never returned.
 - Direct option updates block options that have dedicated, security-sensitive management paths such as active plugins, cron storage, and active theme selection.
@@ -88,7 +103,7 @@ Consumers should inspect ability annotations before execution, especially for op
 
 The bridge currently registers abilities across these WordPress Core domains:
 
-- plugins: inventory, install, activate, deactivate, update, delete
+- plugins: inventory/details, WordPress.org discovery, install/package install, site and network activation, bulk actions, update checks, single/bulk updates, auto-update controls, dependency/update state, delete, and read-only MU inventory
 - themes: inventory, activate, delete
 - users: list, get, create, update, delete
 - posts, pages, and custom post types: list, get, create, update, delete
@@ -99,24 +114,13 @@ The bridge currently registers abilities across these WordPress Core domains:
 - transients: get, set, delete
 - object cache, rewrite rules, database optimization, and update checks
 
-The project intentionally does not expose arbitrary PHP evaluation, raw SQL execution, shell commands, or unrestricted filesystem/network operations.
+The project intentionally does not expose Plugin File Editor, arbitrary PHP evaluation, raw SQL execution, shell commands, or unrestricted filesystem/network operations.
 
-## Planned expansion
+## Plugin management design boundary
 
-The repository is intended to become a broader WordPress administration ability layer. Useful next areas include:
+Plugin management follows WordPress Admin/Core behavior rather than introducing a second management engine. Plugin File Editor is deliberately not exposed. Must-Use plugins are inventory-only because normal WordPress Admin does not provide lifecycle management for them.
 
-- plugin activation, deactivation, uninstall, and inventory
-- theme management
-- post, page, taxonomy, and custom post type management
-- media upload and metadata management
-- user update, role management, and deletion
-- option discovery and dedicated site settings
-- cron discovery and event management
-- Site Health and diagnostics
-- cache and transient inspection
-- update management and maintenance workflows
-- backup-aware and rollback-aware composite operations
-- audit logging and execution history
+Single-site and Multisite plugin-management E2E flows are required CI gates.
 
 ## Releases
 
