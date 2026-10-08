@@ -36,6 +36,7 @@ build_theme() {
 
 build_theme 1
 build_theme 2
+build_theme 3
 
 cat > "$MU_DIR/wp-ability-theme-e2e-http.php" <<'PHP'
 <?php
@@ -86,6 +87,7 @@ done
 
 PACKAGE_V1="https://127.0.0.1:$PORT/theme-v1.zip"
 PACKAGE_V2="https://127.0.0.1:$PORT/theme-v2.zip"
+PACKAGE_V3="https://127.0.0.1:$PORT/theme-v3.zip"
 
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" ability
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" remember-fallback
@@ -95,8 +97,10 @@ PACKAGE_V2="https://127.0.0.1:$PORT/theme-v2.zip"
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" auto-update false
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" overwrite "$PACKAGE_V2"
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" assert 2.0.0 active
-"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" prime-update "$PACKAGE_V2"
-"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" check-update
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" prime-update "$PACKAGE_V3" 3.0.0
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" check-update 3.0.0
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" update
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" assert 3.0.0 active
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" switch-back
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" delete
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" assert-absent
