@@ -88,15 +88,18 @@ done
 PACKAGE_V1="https://127.0.0.1:$PORT/theme-v1.zip"
 PACKAGE_V2="https://127.0.0.1:$PORT/theme-v2.zip"
 PACKAGE_V3="https://127.0.0.1:$PORT/theme-v3.zip"
+SHA_V1="$(sha256sum "$WWW_DIR/theme-v1.zip" | awk '{print $1}')"
+SHA_V2="$(sha256sum "$WWW_DIR/theme-v2.zip" | awk '{print $1}')"
 
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" ability
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" discovery
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" remember-fallback
-"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" install "$PACKAGE_V1" true
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" install-checksum-mismatch "$PACKAGE_V1"
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" install "$PACKAGE_V1" true "$SHA_V1"
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" assert 1.0.0 active
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" auto-update true
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" auto-update false
-"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" overwrite "$PACKAGE_V2"
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" overwrite "$PACKAGE_V2" "$SHA_V2"
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" assert 2.0.0 active
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" prime-update "$PACKAGE_V3" 3.0.0
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" check-update 3.0.0
