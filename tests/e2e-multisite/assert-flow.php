@@ -10,6 +10,12 @@ defined( 'ABSPATH' ) || exit;
 $command     = isset( $args[0] ) ? $args[0] : '';
 $plugin_file = 'wp-ability-e2e-fixture/fixture-plugin.php';
 
+/**
+ * Resolve a registered ability.
+ *
+ * @param string $name Ability name.
+ * @return WP_Ability
+ */
 function wp_ability_multisite_e2e_ability( $name ) {
 	$ability = wp_get_ability( $name );
 	if ( ! $ability ) {
@@ -18,6 +24,13 @@ function wp_ability_multisite_e2e_ability( $name ) {
 	return $ability;
 }
 
+/**
+ * Fail the E2E run when a Core-backed ability returns an error.
+ *
+ * @param mixed  $result Ability result.
+ * @param string $step   Step label.
+ * @return mixed
+ */
 function wp_ability_multisite_e2e_success( $result, $step ) {
 	if ( is_wp_error( $result ) ) {
 		WP_CLI::error( $step . ' failed [' . $result->get_error_code() . ']: ' . $result->get_error_message() );
