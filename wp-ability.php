@@ -17,6 +17,14 @@ defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/includes/class-ability-schemas.php';
 require_once __DIR__ . '/includes/class-ability-registrar.php';
+require_once __DIR__ . '/includes/class-domain-abilities-base.php';
+require_once __DIR__ . '/includes/class-user-abilities.php';
+require_once __DIR__ . '/includes/class-content-abilities.php';
+require_once __DIR__ . '/includes/class-taxonomy-abilities.php';
+require_once __DIR__ . '/includes/class-media-abilities.php';
+require_once __DIR__ . '/includes/class-option-abilities.php';
+require_once __DIR__ . '/includes/class-cron-abilities.php';
+require_once __DIR__ . '/includes/class-maintenance-abilities.php';
 require_once __DIR__ . '/includes/class-plugin-package-installer.php';
 require_once __DIR__ . '/includes/class-abilities.php';
 require_once __DIR__ . '/includes/class-plugin-abilities.php';
@@ -32,6 +40,12 @@ function wp_ability_boot() {
 	new WP_Ability\Abilities();
 	new WP_Ability\Plugin_Abilities();
 	new WP_Ability\Theme_Abilities();
-	new WP_Ability\Core_Abilities();
+	new WP_Ability\User_Abilities();
+	new WP_Ability\Content_Abilities();
+	new WP_Ability\Taxonomy_Abilities();
+	new WP_Ability\Media_Abilities();
+	new WP_Ability\Option_Abilities();
+	new WP_Ability\Cron_Abilities();
+	new WP_Ability\Maintenance_Abilities();
 }
 add_action( 'plugins_loaded', 'wp_ability_boot' );
