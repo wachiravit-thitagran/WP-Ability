@@ -293,4 +293,28 @@ class PluginPackageInstallerTest extends WP_UnitTestCase {
 
 		$this->assertSame( 'https://example.com/plugin.zip', $result );
 	}
+
+	/**
+	 * Package installation loads the WordPress Core filesystem API dependency.
+	 *
+	 * @return void
+	 */
+	public function test_install_loads_core_filesystem_api(): void {
+		$reflection = new ReflectionMethod( Plugin_Package_Installer::class, 'install' );
+		$source     = file( $reflection->getFileName() );
+		$body       = implode(
+			'',
+			array_slice(
+				$source,
+				$reflection->getStartLine() - 1,
+				$reflection->getEndLine() - $reflection->getStartLine() + 1
+			)
+		);
+
+		$this->assertStringContainsString(
+			"require_once ABSPATH . 'wp-admin/includes/file.php';",
+			$body
+		);
+	}
+
 }
