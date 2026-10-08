@@ -214,4 +214,64 @@ class LifecycleHardeningTest extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'user_id', $events[0] );
 		$this->assertArrayHasKey( 'result_type', $events[1] );
 	}
+
+	/**
+	 * Self-update integrity metadata is enforced on the Core upgrader download path.
+	 *
+	 * @return void
+	 */
+	public function test_self_update_rejects_invalid_digest_before_download(): void {
+		new GitHub_Self_Updater();
+
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'response' => array(
+					GitHub_Self_Updater::PLUGIN_FILE => (object) array(
+						'package'           => 'https://example.com/wp-ability.zip',
+						'wp_ability_sha256' => 'invalid',
+					),
+				),
+			)
+		);
+
+		$result = apply_filters(
+			'upgrader_pre_download',
+			false,
+			'https://example.com/wp-ability.zip',
+			null,
+			array(
+				'plugin' => GitHub_Self_Updater::PLUGIN_FILE,
+				'type'   => 'plugin',
+				'action' => 'update',
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'wp_ability_invalid_package_checksum', $result->get_error_code() );
+		delete_site_transient( 'update_plugins' );
+	}
+
+	/**
+	 * Self-update integrity guard ignores other plugin upgrades.
+	 *
+	 * @return void
+	 */
+	public function test_self_update_integrity_guard_ignores_unrelated_plugins(): void {
+		new GitHub_Self_Updater();
+
+		$result = apply_filters(
+			'upgrader_pre_download',
+			false,
+			'https://example.com/other-plugin.zip',
+			null,
+			array(
+				'plugin' => 'other/other.php',
+				'type'   => 'plugin',
+				'action' => 'update',
+			)
+		);
+
+		$this->assertFalse( $result );
+	}
 }
