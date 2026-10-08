@@ -46,6 +46,7 @@ final class Plugin_Abilities {
 		$this->register_plugin_update();
 		$this->register_plugin_auto_updates();
 		$this->register_plugin_bulk_actions();
+		$this->register_plugin_network_actions();
 		$this->register_plugin_discovery();
 		$this->register_plugin_management();
 	}
@@ -305,6 +306,40 @@ final class Plugin_Abilities {
 
 
 	/**
+	 * Register Multisite network plugin abilities.
+	 *
+	 * @return void
+	 */
+	private function register_plugin_network_actions() {
+		wp_register_ability(
+			'wordpress/plugin-network-activate',
+			array(
+				'label'               => __( 'Network Activate WordPress Plugin', 'wp-ability' ),
+				'description'         => __( 'Network-activates one installed plugin using WordPress Core Multisite behavior.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $this->plugin_file_schema(),
+				'execute_callback'    => array( $this, 'plugin_network_activate' ),
+				'permission_callback' => array( $this, 'can_manage_network_plugins' ),
+				'meta'                => $this->meta( false, false, true ),
+			)
+		);
+
+		wp_register_ability(
+			'wordpress/plugin-network-deactivate',
+			array(
+				'label'               => __( 'Network Deactivate WordPress Plugin', 'wp-ability' ),
+				'description'         => __( 'Network-deactivates one installed plugin using WordPress Core Multisite behavior.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $this->plugin_file_schema(),
+				'execute_callback'    => array( $this, 'plugin_network_deactivate' ),
+				'permission_callback' => array( $this, 'can_manage_network_plugins' ),
+				'meta'                => $this->meta( false, false, true ),
+			)
+		);
+	}
+
+
+	/**
 	 * Register WordPress.org plugin discovery abilities.
 	 *
 	 * @return void
@@ -540,6 +575,15 @@ final class Plugin_Abilities {
 	 */
 	public function can_delete_plugins() {
 		return current_user_can( 'delete_plugins' );
+	}
+
+	/**
+	 * Check Multisite network plugin management permissions.
+	 *
+	 * @return bool
+	 */
+	public function can_manage_network_plugins() {
+		return is_multisite() && current_user_can( 'manage_network_plugins' );
 	}
 
 	/**
@@ -877,6 +921,70 @@ final class Plugin_Abilities {
 		return array(
 			'plugin_files' => $plugin_files,
 			'deleted'      => true,
+		);
+	}
+
+
+	/**
+	 * Return a Multisite-required error.
+	 *
+	 * @return \WP_Error
+	 */
+	private function multisite_required_error() {
+		return new \WP_Error(
+			'wp_ability_multisite_required',
+			__( 'This plugin operation requires WordPress Multisite.', 'wp-ability' )
+		);
+	}
+
+	/**
+	 * Network activate one installed plugin using WordPress Core.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_network_activate( array $input ) {
+		if ( ! is_multisite() ) {
+			return $this->multisite_required_error();
+		}
+
+		$plugin_file = $this->installed_plugin_file( $input );
+		if ( is_wp_error( $plugin_file ) ) {
+			return $plugin_file;
+		}
+
+		$result = activate_plugin( $plugin_file, '', true );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array(
+			'plugin_file'    => $plugin_file,
+			'network_active' => is_plugin_active_for_network( $plugin_file ),
+		);
+	}
+
+	/**
+	 * Network deactivate one installed plugin using WordPress Core.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_network_deactivate( array $input ) {
+		if ( ! is_multisite() ) {
+			return $this->multisite_required_error();
+		}
+
+		$plugin_file = $this->installed_plugin_file( $input );
+		if ( is_wp_error( $plugin_file ) ) {
+			return $plugin_file;
+		}
+
+		deactivate_plugins( $plugin_file, false, true );
+
+		return array(
+			'plugin_file'    => $plugin_file,
+			'network_active' => is_plugin_active_for_network( $plugin_file ),
 		);
 	}
 
