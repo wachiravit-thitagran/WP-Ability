@@ -183,4 +183,125 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertSame( 'MU Fixture Author', $fixture['author'] );
 		$this->assertTrue( $fixture['must_use'] );
 	}
+
+	/**
+	 * Plugin discovery abilities are registered.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_discovery_abilities_are_registered(): void {
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-search' ) );
+		$this->assertNotNull( wp_get_ability( 'wordpress/plugin-get-information' ) );
+	}
+
+	/**
+	 * Plugin search delegates to the Core plugins API query action.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_search_delegates_to_plugins_api(): void {
+		$captured = array();
+		$filter   = static function ( $result, $action, $args ) use ( &$captured ) {
+			$captured = array(
+				'action' => $action,
+				'args'   => $args,
+			);
+
+			return (object) array(
+				'plugins' => array(
+					(object) array(
+						'slug' => 'akismet',
+						'name' => 'Akismet',
+					),
+				),
+				'info'    => (object) array(
+					'page'    => 1,
+					'pages'   => 1,
+					'results' => 1,
+				),
+			);
+		};
+
+		add_filter( 'plugins_api', $filter, 10, 3 );
+
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_search(
+			array(
+				'search'   => 'spam',
+				'page'     => 1,
+				'per_page' => 12,
+			)
+		);
+
+		remove_filter( 'plugins_api', $filter, 10 );
+
+		$this->assertSame( 'query_plugins', $captured['action'] );
+		$this->assertSame( 'spam', $captured['args']['search'] );
+		$this->assertSame( 1, $captured['args']['page'] );
+		$this->assertSame( 12, $captured['args']['per_page'] );
+		$this->assertSame( 'akismet', $result['plugins'][0]['slug'] );
+	}
+
+	/**
+	 * Plugin information delegates to the Core plugin_information action.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_get_information_delegates_to_plugins_api(): void {
+		$captured = array();
+		$filter   = static function ( $result, $action, $args ) use ( &$captured ) {
+			$captured = array(
+				'action' => $action,
+				'args'   => $args,
+			);
+
+			return (object) array(
+				'slug'    => 'akismet',
+				'name'    => 'Akismet',
+				'version' => '9.9.9',
+			);
+		};
+
+		add_filter( 'plugins_api', $filter, 10, 3 );
+
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_get_information(
+			array(
+				'slug' => 'Akismet',
+			)
+		);
+
+		remove_filter( 'plugins_api', $filter, 10 );
+
+		$this->assertSame( 'plugin_information', $captured['action'] );
+		$this->assertSame( 'akismet', $captured['args']['slug'] );
+		$this->assertSame( 'akismet', $result['slug'] );
+		$this->assertSame( '9.9.9', $result['version'] );
+	}
+
+	/**
+	 * Plugin information preserves Core API errors.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_get_information_preserves_core_error(): void {
+		$filter = static function () {
+			return new WP_Error( 'plugins_api_failed', 'Core plugin API failure.' );
+		};
+
+		add_filter( 'plugins_api', $filter );
+
+		$plugins = new Plugin_Abilities();
+		$result  = $plugins->plugin_get_information(
+			array(
+				'slug' => 'missing',
+			)
+		);
+
+		remove_filter( 'plugins_api', $filter );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'plugins_api_failed', $result->get_error_code() );
+	}
+
 }
