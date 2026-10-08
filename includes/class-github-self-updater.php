@@ -174,5 +174,4 @@ final class GitHub_Self_Updater {
 		$verifier = new Package_Integrity_Verifier( $checksum );
 		return $verifier->verify( $reply, $package, $upgrader, $hook_extra );
 	}
-
 }
