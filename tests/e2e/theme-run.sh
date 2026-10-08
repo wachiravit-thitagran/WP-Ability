@@ -90,6 +90,7 @@ PACKAGE_V2="https://127.0.0.1:$PORT/theme-v2.zip"
 PACKAGE_V3="https://127.0.0.1:$PORT/theme-v3.zip"
 
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" ability
+"${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" discovery
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" remember-fallback
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" install "$PACKAGE_V1" true
 "${WP[@]}" eval-file "$REPO_ROOT/tests/e2e/theme-assert-flow.php" assert 1.0.0 active
