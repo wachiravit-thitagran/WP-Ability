@@ -438,5 +438,4 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertFalse( $result['auto_update_enabled'] );
 		$this->assertSame( array( 'other/other.php' ), get_site_option( 'auto_update_plugins' ) );
 	}
-
 }
