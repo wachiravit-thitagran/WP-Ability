@@ -498,5 +498,4 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertSame( 'wp_ability_plugin_active', $result->get_error_code() );
 		$this->assertFileExists( $this->plugin_file );
 	}
-
 }
