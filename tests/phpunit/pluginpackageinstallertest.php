@@ -316,5 +316,4 @@ class PluginPackageInstallerTest extends WP_UnitTestCase {
 			$body
 		);
 	}
-
 }
