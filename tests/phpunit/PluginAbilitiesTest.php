@@ -521,5 +521,4 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertFalse( $result['has_dependents'] );
 		$this->assertFalse( $result['has_active_dependents'] );
 	}
-
 }
