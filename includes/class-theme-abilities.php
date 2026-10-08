@@ -578,6 +578,9 @@ final class Theme_Abilities {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
+		if ( isset( $upgrader->skin->result ) && is_wp_error( $upgrader->skin->result ) ) {
+			return $upgrader->skin->result;
+		}
 		if ( false === $result ) {
 			return new \WP_Error( 'wp_ability_theme_package_install_failed', __( 'Theme package installation failed.', 'wp-ability' ) );
 		}
