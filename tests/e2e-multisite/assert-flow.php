@@ -61,18 +61,36 @@ switch ( $command ) {
 
 	case 'install':
 		$url    = isset( $args[1] ) ? $args[1] : '';
+		$sha256 = isset( $args[2] ) ? $args[2] : '';
 		$result = wp_ability_multisite_e2e_success(
 			wp_ability_multisite_e2e_ability( 'wordpress/plugin-install-package' )->execute(
 				array(
 					'package_url' => $url,
 					'overwrite'   => false,
-					'activate'    => false,
+					'activate'        => false,
+					'expected_sha256' => $sha256,
 				)
 			),
 			'Package install'
 		);
 		if ( empty( $result['installed'] ) || $plugin_file !== $result['plugin_file'] ) {
 			WP_CLI::error( 'Unexpected package install result.' );
+		}
+		break;
+
+
+	case 'install-checksum-mismatch':
+		$url    = isset( $args[1] ) ? $args[1] : '';
+		$result = wp_ability_multisite_e2e_ability( 'wordpress/plugin-install-package' )->execute(
+			array(
+				'package_url'     => $url,
+				'overwrite'       => false,
+				'activate'        => false,
+				'expected_sha256' => str_repeat( '0', 64 ),
+			)
+		);
+		if ( ! is_wp_error( $result ) || 'wp_ability_package_checksum_mismatch' !== $result->get_error_code() ) {
+			WP_CLI::error( 'Multisite plugin package checksum mismatch was not rejected.' );
 		}
 		break;
 
