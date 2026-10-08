@@ -61,7 +61,149 @@ final class Ability_Schemas {
 	 * @return array
 	 */
 	public static function output( $ability_name ) {
-		$title = ucwords( str_replace( array( 'wordpress/', '-', '_' ), array( '', ' ', ' ' ), (string) $ability_name ) );
+		$title      = ucwords( str_replace( array( 'wordpress/', '-', '_' ), array( '', ' ', ' ' ), (string) $ability_name ) );
+		$properties = array();
+
+		if ( 0 === strpos( $ability_name, 'wordpress/plugin-' ) ) {
+			$properties = array(
+				'plugin_file'         => array( 'type' => 'string' ),
+				'plugins'             => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'name'                => array( 'type' => 'string' ),
+				'slug'                => array( 'type' => 'string' ),
+				'version'             => array( 'type' => 'string' ),
+				'active'              => array( 'type' => 'boolean' ),
+				'network_active'      => array( 'type' => 'boolean' ),
+				'installed'           => array( 'type' => 'boolean' ),
+				'overwritten'         => array( 'type' => 'boolean' ),
+				'activated'           => array( 'type' => 'boolean' ),
+				'deleted'             => array( 'type' => 'boolean' ),
+				'updated'             => array( 'type' => 'boolean' ),
+				'update_available'    => array( 'type' => 'boolean' ),
+				'auto_update_enabled' => array( 'type' => 'boolean' ),
+				'updates'             => array( 'type' => 'object' ),
+				'results'             => array( 'type' => array( 'array', 'object' ) ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/theme-' ) ) {
+			$properties = array(
+				'stylesheet'          => array( 'type' => 'string' ),
+				'themes'              => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'name'                => array( 'type' => 'string' ),
+				'slug'                => array( 'type' => 'string' ),
+				'version'             => array( 'type' => 'string' ),
+				'active'              => array( 'type' => 'boolean' ),
+				'installed'           => array( 'type' => 'boolean' ),
+				'overwritten'         => array( 'type' => 'boolean' ),
+				'activated'           => array( 'type' => 'boolean' ),
+				'deleted'             => array( 'type' => 'boolean' ),
+				'updated'             => array( 'type' => 'boolean' ),
+				'update_available'    => array( 'type' => 'boolean' ),
+				'auto_update_enabled' => array( 'type' => 'boolean' ),
+				'updates'             => array( 'type' => 'object' ),
+				'results'             => array( 'type' => array( 'array', 'object' ) ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/user-' ) ) {
+			$properties = array(
+				'user_id'      => array( 'type' => 'integer' ),
+				'users'        => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'username'     => array( 'type' => 'string' ),
+				'email'        => array( 'type' => 'string' ),
+				'display_name' => array( 'type' => 'string' ),
+				'roles'        => array( 'type' => 'array' ),
+				'total'        => array( 'type' => 'integer' ),
+				'deleted'      => array( 'type' => 'boolean' ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/post-' ) ) {
+			$properties = array(
+				'post_id' => array( 'type' => 'integer' ),
+				'posts'   => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'title'   => array( 'type' => 'string' ),
+				'content' => array( 'type' => 'string' ),
+				'status'  => array( 'type' => 'string' ),
+				'total'   => array( 'type' => 'integer' ),
+				'deleted' => array( 'type' => 'boolean' ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/term-' ) ) {
+			$properties = array(
+				'term_id'  => array( 'type' => 'integer' ),
+				'terms'    => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'name'     => array( 'type' => 'string' ),
+				'slug'     => array( 'type' => 'string' ),
+				'taxonomy' => array( 'type' => 'string' ),
+				'deleted'  => array( 'type' => 'boolean' ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/media-' ) ) {
+			$properties = array(
+				'attachment_id' => array( 'type' => 'integer' ),
+				'media'         => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'title'         => array( 'type' => 'string' ),
+				'url'           => array( 'type' => 'string' ),
+				'mime_type'     => array( 'type' => 'string' ),
+				'alt_text'      => array( 'type' => 'string' ),
+				'deleted'       => array( 'type' => 'boolean' ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/comment-' ) ) {
+			$properties = array(
+				'comment_id' => array( 'type' => 'integer' ),
+				'comments'   => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'post_id'    => array( 'type' => 'integer' ),
+				'content'    => array( 'type' => 'string' ),
+				'status'     => array( 'type' => 'string' ),
+				'total'      => array( 'type' => 'integer' ),
+				'deleted'    => array( 'type' => 'boolean' ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/option-' ) ) {
+			$properties = array(
+				'option_name' => array( 'type' => 'string' ),
+				'value'       => array(),
+				'updated'     => array( 'type' => 'boolean' ),
+				'deleted'     => array( 'type' => 'boolean' ),
+				'value_type'  => array( 'type' => 'string' ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/cron-' ) ) {
+			$properties = array(
+				'events'    => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'hook'      => array( 'type' => 'string' ),
+				'timestamp' => array( 'type' => 'integer' ),
+				'scheduled' => array( 'type' => 'boolean' ),
+				'deleted'   => array( 'type' => 'boolean' ),
+				'ran'       => array( 'type' => 'boolean' ),
+			);
+		} elseif ( 0 === strpos( $ability_name, 'wordpress/transient-' ) ) {
+			$properties = array(
+				'transient_name' => array( 'type' => 'string' ),
+				'value'          => array(),
+				'set'            => array( 'type' => 'boolean' ),
+				'deleted'        => array( 'type' => 'boolean' ),
+			);
+		} else {
+			$properties = array(
+				'success' => array( 'type' => 'boolean' ),
+			);
+		}
 
 		return array(
 			'type'                 => 'object',
@@ -71,6 +213,7 @@ final class Ability_Schemas {
 				__( 'Structured result returned by %s.', 'wp-ability' ),
 				$ability_name
 			),
+			'properties'           => $properties,
 			'additionalProperties' => true,
 		);
 	}
