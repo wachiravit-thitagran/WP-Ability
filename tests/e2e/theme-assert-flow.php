@@ -135,7 +135,8 @@ switch ( $command ) {
 		if ( ! $theme->exists() || $version !== $theme->get( 'Version' ) ) {
 			WP_CLI::error( 'Theme version mismatch.' );
 		}
-		if ( $active !== ( $stylesheet === get_stylesheet() ) ) {
+		$actual_active = in_array( get_stylesheet(), array( $stylesheet ), true );
+		if ( $active xor $actual_active ) {
 			WP_CLI::error( 'Theme active state mismatch.' );
 		}
 
