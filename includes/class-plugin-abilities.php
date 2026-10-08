@@ -206,6 +206,30 @@ final class Plugin_Abilities {
 			)
 		);
 		wp_register_ability(
+			'wordpress/plugin-get',
+			array(
+				'label'               => __( 'Get WordPress Plugin', 'wp-ability' ),
+				'description'         => __( 'Returns metadata and current state for one installed WordPress plugin.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $this->plugin_file_schema(),
+				'execute_callback'    => array( $this, 'plugin_get' ),
+				'permission_callback' => array( $this, 'can_activate_plugins' ),
+				'meta'                => $this->meta( true, false, true ),
+			)
+		);
+		wp_register_ability(
+			'wordpress/plugin-mu-list',
+			array(
+				'label'               => __( 'List WordPress Must-Use Plugins', 'wp-ability' ),
+				'description'         => __( 'Lists WordPress must-use plugins using the Core must-use plugin inventory.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $this->empty_schema(),
+				'execute_callback'    => array( $this, 'plugin_mu_list' ),
+				'permission_callback' => array( $this, 'can_activate_plugins' ),
+				'meta'                => $this->meta( true, false, true ),
+			)
+		);
+		wp_register_ability(
 			'wordpress/plugin-delete',
 			array(
 				'label'               => __( 'Delete WordPress Plugin', 'wp-ability' ),
@@ -423,6 +447,27 @@ final class Plugin_Abilities {
 	}
 
 	/**
+	 * Normalize installed plugin metadata using WordPress Core data.
+	 *
+	 * @param string      $file Plugin file.
+	 * @param array       $data Plugin header data.
+	 * @param object|bool $updates Plugin update transient.
+	 * @return array
+	 */
+	private function plugin_payload( $file, array $data, $updates ) {
+		return array(
+			'plugin_file'      => $file,
+			'name'             => $data['Name'],
+			'version'          => $data['Version'],
+			'author'           => $data['Author'],
+			'description'      => $data['Description'],
+			'active'           => is_plugin_active( $file ),
+			'network_active'   => is_multisite() && is_plugin_active_for_network( $file ),
+			'update_available' => is_object( $updates ) && isset( $updates->response[ $file ] ),
+		);
+	}
+
+	/**
 	 * List installed plugins.
 	 *
 	 * @return array
@@ -433,13 +478,47 @@ final class Plugin_Abilities {
 		$result  = array();
 
 		foreach ( get_plugins() as $file => $data ) {
+			$result[] = $this->plugin_payload( $file, $data, $updates );
+		}
+
+		return array( 'plugins' => $result );
+	}
+
+	/**
+	 * Get one installed plugin.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_get( array $input ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		$file    = plugin_basename( sanitize_text_field( $input['plugin_file'] ) );
+		$plugins = get_plugins();
+
+		if ( ! isset( $plugins[ $file ] ) ) {
+			return new \WP_Error( 'wp_ability_plugin_not_found', __( 'Plugin not found.', 'wp-ability' ) );
+		}
+
+		return $this->plugin_payload( $file, $plugins[ $file ], get_site_transient( 'update_plugins' ) );
+	}
+
+	/**
+	 * List must-use plugins.
+	 *
+	 * @return array
+	 */
+	public function plugin_mu_list() {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		$result = array();
+
+		foreach ( get_mu_plugins() as $file => $data ) {
 			$result[] = array(
-				'plugin_file'      => $file,
-				'name'             => $data['Name'],
-				'version'          => $data['Version'],
-				'active'           => is_plugin_active( $file ),
-				'network_active'   => is_multisite() && is_plugin_active_for_network( $file ),
-				'update_available' => isset( $updates->response[ $file ] ),
+				'plugin_file' => $file,
+				'name'        => $data['Name'],
+				'version'     => $data['Version'],
+				'author'      => $data['Author'],
+				'description' => $data['Description'],
+				'must_use'    => true,
 			);
 		}
 
