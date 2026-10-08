@@ -108,7 +108,7 @@ switch ( $command ) {
 		if ( ! $theme->exists() || $version !== $theme->get( 'Version' ) ) {
 			WP_CLI::error( 'Theme version mismatch.' );
 		}
-		if ( $active !== ( get_stylesheet() === $stylesheet ) ) {
+		if ( $active !== ( $stylesheet === get_stylesheet() ) ) {
 			WP_CLI::error( 'Theme active state mismatch.' );
 		}
 
