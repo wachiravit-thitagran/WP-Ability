@@ -63,7 +63,7 @@ switch ( $command ) {
 		break;
 
 	case 'discovery':
-		$search = wp_ability_theme_e2e_success(
+		$theme_search_result = wp_ability_theme_e2e_success(
 			wp_ability_theme_e2e_ability( 'wordpress/theme-search' )->execute(
 				array(
 					'search'   => 'twenty twenty-five',
@@ -73,7 +73,7 @@ switch ( $command ) {
 			),
 			'Theme search'
 		);
-		if ( empty( $search['themes'] ) ) {
+		if ( empty( $theme_search_result['themes'] ) ) {
 			WP_CLI::error( 'WordPress.org theme search returned no results.' );
 		}
 
