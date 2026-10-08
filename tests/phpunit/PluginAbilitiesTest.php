@@ -236,9 +236,9 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		remove_filter( 'plugins_api', $filter, 10 );
 
 		$this->assertSame( 'query_plugins', $captured['action'] );
-		$this->assertSame( 'spam', $captured['args']['search'] );
-		$this->assertSame( 1, $captured['args']['page'] );
-		$this->assertSame( 12, $captured['args']['per_page'] );
+		$this->assertSame( 'spam', $captured['args']->search );
+		$this->assertSame( 1, $captured['args']->page );
+		$this->assertSame( 12, $captured['args']->per_page );
 		$this->assertSame( 'akismet', $result['plugins'][0]['slug'] );
 	}
 
@@ -274,7 +274,7 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		remove_filter( 'plugins_api', $filter, 10 );
 
 		$this->assertSame( 'plugin_information', $captured['action'] );
-		$this->assertSame( 'akismet', $captured['args']['slug'] );
+		$this->assertSame( 'akismet', $captured['args']->slug );
 		$this->assertSame( 'akismet', $result['slug'] );
 		$this->assertSame( '9.9.9', $result['version'] );
 	}
