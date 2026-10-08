@@ -101,23 +101,32 @@ final class Plugin_Package_Installer {
 			return $upgrader;
 		}
 
-		$verifier = null;
+		$package_source = $package_url;
+		$verified_temp  = '';
+
 		if ( ! empty( $input['expected_sha256'] ) ) {
 			$verifier = new Package_Integrity_Verifier( $input['expected_sha256'] );
-			add_filter( 'upgrader_pre_download', array( $verifier, 'verify' ), 10, 4 );
+			$verified = $verifier->verify( false, $package_url, null, array() );
+
+			if ( is_wp_error( $verified ) ) {
+				return $verified;
+			}
+
+			$package_source = $verified;
+			$verified_temp  = $verified;
 		}
 
 		try {
 			$result = $upgrader->install(
-				$package_url,
+				$package_source,
 				array(
 					'overwrite_package'  => $overwrite,
 					'clear_update_cache' => true,
 				)
 			);
 		} finally {
-			if ( $verifier ) {
-				remove_filter( 'upgrader_pre_download', array( $verifier, 'verify' ), 10 );
+			if ( '' !== $verified_temp && file_exists( $verified_temp ) ) {
+				wp_delete_file( $verified_temp );
 			}
 		}
 
