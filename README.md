@@ -40,6 +40,30 @@ Plugin management is intentionally a thin semantic wrapper over WordPress Core. 
 
 Other administrative abilities for users, options, media, cron, cache, database maintenance, themes, content, and taxonomy remain available as documented by ability discovery.
 
+## Theme abilities
+
+Theme management follows the same Core-first rule as plugin management. The bridge delegates installation, overwrite, updates, activation, deletion, discovery, and auto-update state to WordPress Core rather than implementing a second theme-management engine.
+
+| Ability | Core behavior | Required capability |
+| --- | --- | --- |
+| `wordpress/theme-list` | `wp_get_themes()` plus Core activation/update/auto-update state | `switch_themes` |
+| `wordpress/theme-get` | `wp_get_theme()` for one installed theme | `switch_themes` |
+| `wordpress/theme-search` | `themes_api( 'query_themes' )` | `install_themes` |
+| `wordpress/theme-get-information` | `themes_api( 'theme_information' )` | `install_themes` |
+| `wordpress/theme-install` | WordPress.org metadata + `Theme_Upgrader::install()` | `install_themes` |
+| `wordpress/theme-install-package` | `Theme_Upgrader::install()` for HTTPS ZIPs | `install_themes`, plus `update_themes` for overwrite and `switch_themes` for activation |
+| `wordpress/theme-check-updates` | `wp_update_themes()` + Core update transient | `update_themes` |
+| `wordpress/theme-update` | Core `Theme_Upgrader` update path | `update_themes` |
+| `wordpress/theme-update-many` | `Theme_Upgrader::bulk_upgrade()` | `update_themes` |
+| `wordpress/theme-enable-auto-update` | Core `auto_update_themes` state | `update_themes` |
+| `wordpress/theme-disable-auto-update` | Core `auto_update_themes` state | `update_themes` |
+| `wordpress/theme-activate` | `switch_theme()` | `switch_themes` |
+| `wordpress/theme-delete` | `delete_theme()` for inactive themes | `delete_themes` |
+
+Theme package installation accepts only validated HTTPS package URLs. The bridge does not expose the Theme File Editor or implement custom ZIP extraction, copy, rollback, or deployment logic.
+
+
+
 ## Custom plugin packages
 
 Use `wordpress/plugin-install-package` when a plugin is distributed as a ZIP package rather than through WordPress.org.
@@ -104,7 +128,7 @@ Consumers should inspect ability annotations before execution, especially for op
 The bridge currently registers abilities across these WordPress Core domains:
 
 - plugins: inventory/details, WordPress.org discovery, install/package install, site and network activation, bulk actions, update checks, single/bulk updates, auto-update controls, dependency/update state, delete, and read-only MU inventory
-- themes: inventory, activate, delete
+- themes: inventory/details, WordPress.org discovery, install/package install, update checks, single/bulk updates, auto-update controls, activate, and delete
 - users: list, get, create, update, delete
 - posts, pages, and custom post types: list, get, create, update, delete
 - taxonomy terms: list, create, update, delete
