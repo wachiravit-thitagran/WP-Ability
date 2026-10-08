@@ -1057,6 +1057,7 @@ final class Plugin_Abilities {
 	 */
 	private function plugin_payload( $file, array $data, $updates ) {
 		\WP_Plugin_Dependencies::initialize();
+		$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
 
 		return array(
 			'plugin_file'              => $file,
@@ -1067,6 +1068,7 @@ final class Plugin_Abilities {
 			'active'                   => is_plugin_active( $file ),
 			'network_active'           => is_multisite() && is_plugin_active_for_network( $file ),
 			'update_available'         => is_object( $updates ) && isset( $updates->response[ $file ] ),
+			'auto_update_enabled'      => in_array( $file, $auto_updates, true ),
 			'dependencies'             => \WP_Plugin_Dependencies::get_dependencies( $file ),
 			'has_unmet_dependencies'   => \WP_Plugin_Dependencies::has_unmet_dependencies( $file ),
 			'has_dependents'           => \WP_Plugin_Dependencies::has_dependents( $file ),
