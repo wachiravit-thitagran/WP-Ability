@@ -162,6 +162,46 @@ final class Plugin_Abilities {
 				'meta'                => $this->meta( false, false, false, true ),
 			)
 		);
+
+		wp_register_ability(
+			'wordpress/plugin-check-updates',
+			array(
+				'label'               => __( 'Check WordPress Plugin Updates', 'wp-ability' ),
+				'description'         => __( 'Refreshes and returns WordPress Core plugin update metadata.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $this->empty_schema(),
+				'execute_callback'    => array( $this, 'plugin_check_updates' ),
+				'permission_callback' => array( $this, 'can_update_plugins' ),
+				'meta'                => $this->meta( false, false, true, true ),
+			)
+		);
+
+		wp_register_ability(
+			'wordpress/plugin-update-many',
+			array(
+				'label'               => __( 'Update WordPress Plugins', 'wp-ability' ),
+				'description'         => __( 'Updates multiple installed WordPress plugins using the Core bulk upgrader.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'plugin_files' => array(
+							'type'     => 'array',
+							'minItems' => 1,
+							'items'    => array(
+								'type'      => 'string',
+								'minLength' => 1,
+							),
+						),
+					),
+					'required'             => array( 'plugin_files' ),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => array( $this, 'plugin_update_many' ),
+				'permission_callback' => array( $this, 'can_update_plugins' ),
+				'meta'                => $this->meta( false, false, false, true ),
+			)
+		);
 	}
 
 
@@ -508,6 +548,69 @@ final class Plugin_Abilities {
 		return array(
 			'plugin_file' => $plugin_file,
 			'updated'     => true,
+		);
+	}
+
+
+	/**
+	 * Refresh and return WordPress Core plugin update metadata.
+	 *
+	 * @return array
+	 */
+	public function plugin_check_updates() {
+		require_once ABSPATH . 'wp-admin/includes/update.php';
+
+		wp_update_plugins();
+
+		return array(
+			'updates' => json_decode( wp_json_encode( get_site_transient( 'update_plugins' ) ), true ),
+		);
+	}
+
+	/**
+	 * Update multiple installed plugins using the Core bulk upgrader.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_update_many( array $input ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+
+		$installed    = get_plugins();
+		$plugin_files = array();
+
+		foreach ( $input['plugin_files'] as $plugin_file ) {
+			$plugin_file = plugin_basename( sanitize_text_field( $plugin_file ) );
+
+			if ( ! isset( $installed[ $plugin_file ] ) ) {
+				return new \WP_Error(
+					'wp_ability_plugin_not_found',
+					__( 'One or more requested plugins are not installed.', 'wp-ability' )
+				);
+			}
+
+			$plugin_files[] = $plugin_file;
+		}
+
+		$plugin_files = array_values( array_unique( $plugin_files ) );
+
+		wp_update_plugins();
+
+		$skin     = new \Automatic_Upgrader_Skin();
+		$upgrader = new \Plugin_Upgrader( $skin );
+		$result   = $upgrader->bulk_upgrade( $plugin_files );
+
+		if ( false === $result ) {
+			return new \WP_Error(
+				'wp_ability_plugin_bulk_update_failed',
+				__( 'Plugin bulk update failed.', 'wp-ability' )
+			);
+		}
+
+		return array(
+			'plugin_files' => $plugin_files,
+			'results'      => json_decode( wp_json_encode( $result ), true ),
 		);
 	}
 
