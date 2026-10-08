@@ -32,6 +32,7 @@ final class GitHub_Self_Updater {
 	public function __construct( $http_get = null ) {
 		$this->http_get = $http_get;
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'inject_update' ) );
+		add_filter( 'upgrader_pre_download', array( $this, 'verify_update_download' ), 10, 4 );
 	}
 
 	/**
@@ -105,6 +106,10 @@ final class GitHub_Self_Updater {
 			$sha256 = strtolower( substr( $asset['digest'], 7 ) );
 		}
 
+		if ( 1 !== preg_match( '/^[a-f0-9]{64}$/', $sha256 ) ) {
+			return $transient;
+		}
+
 		if ( ! isset( $transient->response ) || ! is_array( $transient->response ) ) {
 			$transient->response = array();
 		}
@@ -121,4 +126,53 @@ final class GitHub_Self_Updater {
 
 		return $transient;
 	}
+
+	/**
+	 * Enforce a GitHub release SHA-256 on the native Core plugin update path.
+	 *
+	 * This guard only acts when the update transient for this plugin contains
+	 * the private checksum metadata injected by this updater. Other update
+	 * providers remain untouched.
+	 *
+	 * @param mixed  $reply Existing pre-download result.
+	 * @param string $package Package URL.
+	 * @param mixed  $upgrader Upgrader instance.
+	 * @param array  $hook_extra Upgrader context.
+	 * @return mixed
+	 */
+	public function verify_update_download( $reply, $package, $upgrader, $hook_extra ) {
+		if ( false !== $reply || ! is_array( $hook_extra ) ) {
+			return $reply;
+		}
+
+		if (
+			self::PLUGIN_FILE !== ( isset( $hook_extra['plugin'] ) ? $hook_extra['plugin'] : '' )
+			|| 'plugin' !== ( isset( $hook_extra['type'] ) ? $hook_extra['type'] : '' )
+			|| 'update' !== ( isset( $hook_extra['action'] ) ? $hook_extra['action'] : '' )
+		) {
+			return $reply;
+		}
+
+		$transient = get_site_transient( 'update_plugins' );
+		if ( ! is_object( $transient ) || ! isset( $transient->response[ self::PLUGIN_FILE ] ) ) {
+			return $reply;
+		}
+
+		$update = $transient->response[ self::PLUGIN_FILE ];
+		if ( is_object( $update ) ) {
+			$checksum = isset( $update->wp_ability_sha256 ) ? $update->wp_ability_sha256 : '';
+		} elseif ( is_array( $update ) ) {
+			$checksum = isset( $update['wp_ability_sha256'] ) ? $update['wp_ability_sha256'] : '';
+		} else {
+			return $reply;
+		}
+
+		if ( '' === (string) $checksum ) {
+			return $reply;
+		}
+
+		$verifier = new Package_Integrity_Verifier( $checksum );
+		return $verifier->verify( $reply, $package, $upgrader, $hook_extra );
+	}
+
 }
