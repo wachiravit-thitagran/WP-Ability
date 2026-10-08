@@ -380,5 +380,4 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'wp_ability_plugin_not_found', $result->get_error_code() );
 	}
-
 }
