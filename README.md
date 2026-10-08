@@ -161,7 +161,7 @@ Example input:
   "package_url": "https://example.com/my-plugin.zip",
   "overwrite": true,
   "activate": true,
-  "expected_sha256": "optional-64-character-sha256"
+  "expected_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 }
 ```
 
