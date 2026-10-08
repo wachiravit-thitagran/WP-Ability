@@ -303,5 +303,4 @@ class PluginAbilitiesTest extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'plugins_api_failed', $result->get_error_code() );
 	}
-
 }
