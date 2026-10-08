@@ -44,6 +44,7 @@ final class Plugin_Abilities {
 		$this->register_plugin_install();
 		$this->register_plugin_install_package();
 		$this->register_plugin_update();
+		$this->register_plugin_discovery();
 		$this->register_plugin_management();
 	}
 
@@ -159,6 +160,70 @@ final class Plugin_Abilities {
 				'execute_callback'    => array( $this, 'plugin_update' ),
 				'permission_callback' => array( $this, 'can_update_plugins' ),
 				'meta'                => $this->meta( false, false, false, true ),
+			)
+		);
+	}
+
+
+	/**
+	 * Register WordPress.org plugin discovery abilities.
+	 *
+	 * @return void
+	 */
+	private function register_plugin_discovery() {
+		wp_register_ability(
+			'wordpress/plugin-search',
+			array(
+				'label'               => __( 'Search WordPress Plugins', 'wp-ability' ),
+				'description'         => __( 'Searches WordPress.org plugins through the WordPress Core Plugins API.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'search'   => array(
+							'type'      => 'string',
+							'minLength' => 1,
+						),
+						'page'     => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+							'default' => 1,
+						),
+						'per_page' => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+							'default' => 24,
+						),
+					),
+					'required'             => array( 'search' ),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => array( $this, 'plugin_search' ),
+				'permission_callback' => array( $this, 'can_install_plugins' ),
+				'meta'                => $this->meta( true, false, true, true ),
+			)
+		);
+
+		wp_register_ability(
+			'wordpress/plugin-get-information',
+			array(
+				'label'               => __( 'Get WordPress.org Plugin Information', 'wp-ability' ),
+				'description'         => __( 'Gets WordPress.org plugin information through the WordPress Core Plugins API.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'slug' => array(
+							'type'      => 'string',
+							'minLength' => 1,
+						),
+					),
+					'required'             => array( 'slug' ),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => array( $this, 'plugin_get_information' ),
+				'permission_callback' => array( $this, 'can_install_plugins' ),
+				'meta'                => $this->meta( true, false, true, true ),
 			)
 		);
 	}
@@ -444,6 +509,65 @@ final class Plugin_Abilities {
 			'plugin_file' => $plugin_file,
 			'updated'     => true,
 		);
+	}
+
+
+	/**
+	 * Normalize a WordPress Plugins API result for ability output.
+	 *
+	 * @param mixed $result Plugins API result.
+	 * @return mixed
+	 */
+	private function normalize_plugins_api_result( $result ) {
+		return json_decode( wp_json_encode( $result ), true );
+	}
+
+	/**
+	 * Search WordPress.org plugins through Core.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_search( array $input ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+
+		$result = plugins_api(
+			'query_plugins',
+			array(
+				'search'   => sanitize_text_field( $input['search'] ),
+				'page'     => isset( $input['page'] ) ? max( 1, (int) $input['page'] ) : 1,
+				'per_page' => isset( $input['per_page'] ) ? max( 1, (int) $input['per_page'] ) : 24,
+			)
+		);
+
+		return is_wp_error( $result ) ? $result : $this->normalize_plugins_api_result( $result );
+	}
+
+	/**
+	 * Get WordPress.org plugin information through Core.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_get_information( array $input ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+
+		$slug = sanitize_key( $input['slug'] );
+		if ( '' === $slug ) {
+			return new \WP_Error( 'wp_ability_invalid_plugin_slug', __( 'A valid plugin slug is required.', 'wp-ability' ) );
+		}
+
+		$result = plugins_api(
+			'plugin_information',
+			array(
+				'slug'   => $slug,
+				'fields' => array(
+					'sections' => false,
+				),
+			)
+		);
+
+		return is_wp_error( $result ) ? $result : $this->normalize_plugins_api_result( $result );
 	}
 
 	/**
