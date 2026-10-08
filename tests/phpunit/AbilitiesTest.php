@@ -299,7 +299,7 @@ class AbilitiesTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_option_update_permission_requires_manage_options(): void {
-		$plugins    = new Plugin_Abilities();
+		$abilities = new Abilities();
 
 		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $subscriber );
