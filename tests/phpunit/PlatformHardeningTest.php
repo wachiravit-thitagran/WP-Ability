@@ -140,81 +140,16 @@ class PlatformHardeningTest extends WP_UnitTestCase {
 	 * @return array
 	 */
 	private function wordpress_ability_names() {
-		return array(
-			'wordpress/cache-flush',
-			'wordpress/cron-delete',
-			'wordpress/cron-list',
-			'wordpress/cron-run',
-			'wordpress/cron-schedule',
-			'wordpress/database-optimize',
-			'wordpress/media-delete',
-			'wordpress/media-get',
-			'wordpress/media-list',
-			'wordpress/media-upload',
-			'wordpress/media-update',
-			'wordpress/option-delete',
-			'wordpress/option-get',
-			'wordpress/option-update',
-			'wordpress/plugin-activate',
-			'wordpress/plugin-activate-many',
-			'wordpress/plugin-check-updates',
-			'wordpress/plugin-deactivate',
-			'wordpress/plugin-deactivate-many',
-			'wordpress/plugin-delete',
-			'wordpress/plugin-delete-many',
-			'wordpress/plugin-disable-auto-update',
-			'wordpress/plugin-enable-auto-update',
-			'wordpress/plugin-get',
-			'wordpress/plugin-get-information',
-			'wordpress/plugin-install',
-			'wordpress/plugin-install-package',
-			'wordpress/plugin-list',
-			'wordpress/plugin-mu-list',
-			'wordpress/plugin-network-activate',
-			'wordpress/plugin-network-deactivate',
-			'wordpress/plugin-search',
-			'wordpress/plugin-update',
-			'wordpress/plugin-update-many',
-			'wordpress/post-create',
-			'wordpress/post-delete',
-			'wordpress/post-get',
-			'wordpress/post-list',
-			'wordpress/post-update',
-			'wordpress/rewrite-flush',
-			'wordpress/term-create',
-			'wordpress/term-delete',
-			'wordpress/term-list',
-			'wordpress/term-update',
-			'wordpress/theme-activate',
-			'wordpress/theme-check-updates',
-			'wordpress/theme-delete',
-			'wordpress/theme-disable-auto-update',
-			'wordpress/theme-enable-auto-update',
-			'wordpress/theme-get',
-			'wordpress/theme-get-information',
-			'wordpress/theme-install',
-			'wordpress/theme-install-package',
-			'wordpress/theme-list',
-			'wordpress/theme-search',
-			'wordpress/theme-update',
-			'wordpress/theme-update-many',
-			'wordpress/transient-delete',
-			'wordpress/transient-get',
-			'wordpress/transient-set',
-			'wordpress/update-check',
-			'wordpress/user-create',
-			'wordpress/user-delete',
-			'wordpress/user-get',
-			'wordpress/user-list',
-			'wordpress/user-update',
-			'wordpress/comment-list',
-			'wordpress/comment-get',
-			'wordpress/comment-create',
-			'wordpress/comment-update',
-			'wordpress/comment-delete',
-			'wordpress/comment-approve',
-			'wordpress/comment-spam',
-			'wordpress/comment-trash',
-		);
+		$names = array();
+
+		foreach ( wp_get_abilities() as $ability ) {
+			$name = $ability->get_name();
+			if ( 0 === strpos( $name, 'wordpress/' ) ) {
+				$names[] = $name;
+			}
+		}
+
+		sort( $names );
+		return $names;
 	}
 }
