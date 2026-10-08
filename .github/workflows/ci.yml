@@ -27,9 +27,21 @@ jobs:
         if: matrix.php == '8.1'
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Validate Composer metadata
+        if: matrix.php == '8.1'
+        run: composer validate --strict
+
+      - name: Audit Composer dependencies
+        if: matrix.php == '8.1'
+        run: composer audit --no-interaction
+
       - name: Run WordPress Coding Standards
         if: matrix.php == '8.1'
         run: composer lint
+
+      - name: Run PHPStan
+        if: matrix.php == '8.1'
+        run: composer analyse
 
   phpunit:
     runs-on: ubuntu-latest
@@ -206,3 +218,31 @@ jobs:
           REPO_ROOT: ${{ github.workspace }}
         run: bash tests/e2e-multisite/run.sh
 
+
+
+  package-smoke:
+    name: installable ZIP smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build release-shaped ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^ \* Version:[[:space:]]*//p' wp-ability.php | head -n 1 | tr -d '\r')"
+          rm -rf build dist
+          mkdir -p build/wp-ability dist
+          cp wp-ability.php build/wp-ability/
+          cp -R includes build/wp-ability/
+          cp README.md build/wp-ability/
+          if [ -f LICENSE ]; then cp LICENSE build/wp-ability/; fi
+          ( cd build && zip -qr "../dist/wp-ability-${version}.zip" wp-ability )
+          unzip -t "dist/wp-ability-${version}.zip"
+          unzip -Z1 "dist/wp-ability-${version}.zip" | grep -qx 'wp-ability/wp-ability.php'
+          unzip -Z1 "dist/wp-ability-${version}.zip" | grep -qx 'wp-ability/includes/class-ability-registrar.php'
+          if unzip -Z1 "dist/wp-ability-${version}.zip" | grep -Eq '(^|/)(\.git|\.github|tests|vendor)/'; then
+            echo "::error::Development files leaked into release ZIP."
+            exit 1
+          fi
