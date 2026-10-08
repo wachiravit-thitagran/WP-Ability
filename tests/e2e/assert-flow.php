@@ -46,8 +46,51 @@ function wp_ability_e2e_require_success( $result, $step ) {
 
 switch ( $command ) {
 	case 'ability':
-		wp_ability_e2e_ability( 'wordpress/plugin-install-package' );
-		WP_CLI::success( 'plugin-install-package ability is registered.' );
+		foreach (
+			array(
+				'wordpress/plugin-list',
+				'wordpress/plugin-get',
+				'wordpress/plugin-search',
+				'wordpress/plugin-get-information',
+				'wordpress/plugin-install-package',
+				'wordpress/plugin-check-updates',
+				'wordpress/plugin-update',
+				'wordpress/plugin-enable-auto-update',
+				'wordpress/plugin-disable-auto-update',
+				'wordpress/plugin-deactivate',
+				'wordpress/plugin-delete',
+			) as $ability_name
+		) {
+			wp_ability_e2e_ability( $ability_name );
+		}
+		WP_CLI::success( 'Single-site plugin management abilities are registered.' );
+		break;
+
+	case 'discovery':
+		$search = wp_ability_e2e_require_success(
+			wp_ability_e2e_ability( 'wordpress/plugin-search' )->execute(
+				array(
+					'search'   => 'akismet',
+					'page'     => 1,
+					'per_page' => 5,
+				)
+			),
+			'Plugin search'
+		);
+		if ( empty( $search['plugins'] ) ) {
+			WP_CLI::error( 'WordPress.org plugin search returned no results.' );
+		}
+
+		$info = wp_ability_e2e_require_success(
+			wp_ability_e2e_ability( 'wordpress/plugin-get-information' )->execute(
+				array( 'slug' => 'akismet' )
+			),
+			'Plugin information'
+		);
+		if ( 'akismet' !== $info['slug'] ) {
+			WP_CLI::error( 'Plugin information returned an unexpected slug.' );
+		}
+		WP_CLI::success( 'WordPress.org discovery abilities use Core successfully.' );
 		break;
 
 	case 'install':
@@ -90,6 +133,113 @@ switch ( $command ) {
 		}
 
 		WP_CLI::success( 'Fixture is version ' . $expected . ' and ' . $state . '.' );
+		break;
+
+
+	case 'assert-inventory':
+		$expected_version = isset( $args[1] ) ? $args[1] : '';
+		$expected_state   = isset( $args[2] ) ? $args[2] : 'inactive';
+		$expected_auto    = isset( $args[3] ) && 'true' === $args[3];
+
+		$list = wp_ability_e2e_require_success(
+			wp_ability_e2e_ability( 'wordpress/plugin-list' )->execute( array() ),
+			'Plugin list'
+		);
+		$list_item = null;
+		foreach ( $list['plugins'] as $plugin ) {
+			if ( $plugin_file === $plugin['plugin_file'] ) {
+				$list_item = $plugin;
+				break;
+			}
+		}
+		if ( ! $list_item ) {
+			WP_CLI::error( 'Fixture plugin was absent from plugin-list.' );
+		}
+
+		$detail = wp_ability_e2e_require_success(
+			wp_ability_e2e_ability( 'wordpress/plugin-get' )->execute(
+				array( 'plugin_file' => $plugin_file )
+			),
+			'Plugin get'
+		);
+
+		$expected_active = 'active' === $expected_state;
+		foreach ( array( $list_item, $detail ) as $payload ) {
+			if ( $expected_version !== $payload['version'] ) {
+				WP_CLI::error( 'Inventory version mismatch.' );
+			}
+			if ( $expected_active !== $payload['active'] ) {
+				WP_CLI::error( 'Inventory active state mismatch.' );
+			}
+			if ( ! array_key_exists( 'auto_update_enabled', $payload ) || $expected_auto !== $payload['auto_update_enabled'] ) {
+				WP_CLI::error( 'Inventory auto-update state mismatch.' );
+			}
+		}
+		WP_CLI::success( 'Plugin list/get inventory matches Core state.' );
+		break;
+
+	case 'auto-update':
+		$enabled = isset( $args[1] ) && 'true' === $args[1];
+		$name    = $enabled ? 'wordpress/plugin-enable-auto-update' : 'wordpress/plugin-disable-auto-update';
+		$result  = wp_ability_e2e_require_success(
+			wp_ability_e2e_ability( $name )->execute(
+				array( 'plugin_file' => $plugin_file )
+			),
+			'Plugin auto-update toggle'
+		);
+		if ( $enabled !== $result['auto_update_enabled'] ) {
+			WP_CLI::error( 'Auto-update ability returned an unexpected state.' );
+		}
+		break;
+
+	case 'prime-update':
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		$package_url = isset( $args[1] ) ? $args[1] : '';
+		$checked     = array();
+		foreach ( get_plugins() as $file => $data ) {
+			$checked[ $file ] = $data['Version'];
+		}
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'last_checked' => time(),
+				'checked'      => $checked,
+				'response'     => array(
+					$plugin_file => (object) array(
+						'id'          => 'wp-ability-e2e-fixture',
+						'slug'        => 'wp-ability-e2e-fixture',
+						'plugin'      => $plugin_file,
+						'new_version' => '2.0.0',
+						'url'         => 'https://example.test/',
+						'package'     => $package_url,
+					),
+				),
+				'no_update'    => array(),
+			)
+		);
+		WP_CLI::success( 'Core plugin update transient primed for fixture v2.' );
+		break;
+
+	case 'check-update':
+		$result = wp_ability_e2e_require_success(
+			wp_ability_e2e_ability( 'wordpress/plugin-check-updates' )->execute( array() ),
+			'Plugin update check'
+		);
+		if ( '2.0.0' !== $result['updates']['response'][ $plugin_file ]['new_version'] ) {
+			WP_CLI::error( 'Plugin update check did not return fixture v2.' );
+		}
+		break;
+
+	case 'update':
+		$result = wp_ability_e2e_require_success(
+			wp_ability_e2e_ability( 'wordpress/plugin-update' )->execute(
+				array( 'plugin_file' => $plugin_file )
+			),
+			'Plugin update'
+		);
+		if ( empty( $result['updated'] ) ) {
+			WP_CLI::error( 'Plugin update did not report success.' );
+		}
 		break;
 
 	case 'deactivate':
