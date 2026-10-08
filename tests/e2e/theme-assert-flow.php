@@ -93,15 +93,33 @@ switch ( $command ) {
 		update_option( 'wp_ability_e2e_theme_fallback', get_stylesheet(), false );
 		break;
 
+
+	case 'install-checksum-mismatch':
+		$url    = isset( $args[1] ) ? $args[1] : '';
+		$result = wp_ability_theme_e2e_ability( 'wordpress/theme-install-package' )->execute(
+			array(
+				'package_url'     => $url,
+				'overwrite'       => false,
+				'activate'        => false,
+				'expected_sha256' => str_repeat( '0', 64 ),
+			)
+		);
+		if ( ! is_wp_error( $result ) || 'wp_ability_package_checksum_mismatch' !== $result->get_error_code() ) {
+			WP_CLI::error( 'Theme package checksum mismatch was not rejected.' );
+		}
+		break;
+
 	case 'install':
 		$url      = isset( $args[1] ) ? $args[1] : '';
 		$activate = isset( $args[2] ) && 'true' === $args[2];
+		$sha256   = isset( $args[3] ) ? $args[3] : '';
 		$result   = wp_ability_theme_e2e_success(
 			wp_ability_theme_e2e_ability( 'wordpress/theme-install-package' )->execute(
 				array(
 					'package_url' => $url,
 					'overwrite'   => false,
-					'activate'    => $activate,
+					'activate'        => $activate,
+					'expected_sha256' => $sha256,
 				)
 			),
 			'Theme package install'
@@ -113,12 +131,14 @@ switch ( $command ) {
 
 	case 'overwrite':
 		$url    = isset( $args[1] ) ? $args[1] : '';
+		$sha256 = isset( $args[2] ) ? $args[2] : '';
 		$result = wp_ability_theme_e2e_success(
 			wp_ability_theme_e2e_ability( 'wordpress/theme-install-package' )->execute(
 				array(
 					'package_url' => $url,
 					'overwrite'   => true,
-					'activate'    => true,
+					'activate'        => true,
+					'expected_sha256' => $sha256,
 				)
 			),
 			'Theme package overwrite'
