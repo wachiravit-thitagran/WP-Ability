@@ -30,7 +30,7 @@ final class Audit_Context {
 	 * @param mixed  $ability Ability object.
 	 * @return void
 	 */
-	public function capture_before( $ability_name, $input, $ability ) {
+	public function capture_before( $ability_name, $input, $ability = null ) {
 		unset( $ability );
 		$event = array(
 			'phase'      => 'before',
@@ -51,7 +51,7 @@ final class Audit_Context {
 	 * @param mixed  $ability Ability object.
 	 * @return void
 	 */
-	public function capture_after( $ability_name, $input, $result, $ability ) {
+	public function capture_after( $ability_name, $input, $result, $ability = null ) {
 		unset( $input, $ability );
 		$event = array(
 			'phase'       => 'after',
