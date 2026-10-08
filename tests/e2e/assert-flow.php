@@ -97,11 +97,13 @@ switch ( $command ) {
 		$url       = isset( $args[1] ) ? $args[1] : '';
 		$overwrite = isset( $args[2] ) && 'true' === $args[2];
 		$activate  = isset( $args[3] ) && 'true' === $args[3];
+		$sha256    = isset( $args[4] ) ? $args[4] : '';
 		$result    = wp_ability_e2e_ability( 'wordpress/plugin-install-package' )->execute(
 			array(
 				'package_url' => $url,
 				'overwrite'   => $overwrite,
-				'activate'    => $activate,
+				'activate'        => $activate,
+				'expected_sha256' => $sha256,
 			)
 		);
 		$result    = wp_ability_e2e_require_success( $result, 'Package install' );
@@ -111,6 +113,23 @@ switch ( $command ) {
 		}
 
 		WP_CLI::log( wp_json_encode( $result ) );
+		break;
+
+
+	case 'install-checksum-mismatch':
+		$url    = isset( $args[1] ) ? $args[1] : '';
+		$result = wp_ability_e2e_ability( 'wordpress/plugin-install-package' )->execute(
+			array(
+				'package_url'     => $url,
+				'overwrite'       => false,
+				'activate'        => false,
+				'expected_sha256' => str_repeat( '0', 64 ),
+			)
+		);
+		if ( ! is_wp_error( $result ) || 'wp_ability_package_checksum_mismatch' !== $result->get_error_code() ) {
+			WP_CLI::error( 'Plugin package checksum mismatch was not rejected.' );
+		}
+		WP_CLI::success( 'Plugin package checksum mismatch rejected.' );
 		break;
 
 	case 'assert-version':
