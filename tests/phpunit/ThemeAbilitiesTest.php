@@ -20,9 +20,6 @@ class ThemeAbilitiesTest extends WP_UnitTestCase {
 	public function test_registers_complete_theme_management_surface(): void {
 		$this->assertTrue( class_exists( Theme_Abilities::class ) );
 
-		$themes = new Theme_Abilities();
-		$themes->register_abilities();
-
 		foreach (
 			array(
 				'wordpress/theme-list',
