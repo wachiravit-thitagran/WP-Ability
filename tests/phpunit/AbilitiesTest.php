@@ -8,6 +8,7 @@
 use WP_Ability\Abilities;
 use WP_Ability\Core_Abilities;
 use WP_Ability\Plugin_Abilities;
+use WP_Ability\Theme_Abilities;
 
 /**
  * Test the WordPress administration abilities.
@@ -318,18 +319,19 @@ class AbilitiesTest extends WP_UnitTestCase {
 	public function test_core_abilities_require_expected_capabilities(): void {
 		$core    = new Core_Abilities();
 		$plugins = new Plugin_Abilities();
+		$themes  = new Theme_Abilities();
 
 		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $subscriber );
 		$this->assertFalse( $plugins->can_activate_plugins() );
-		$this->assertFalse( $core->can_switch_themes() );
+		$this->assertFalse( $themes->can_switch_themes() );
 		$this->assertFalse( $core->can_list_users() );
 		$this->assertFalse( $core->can_manage_options() );
 
 		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $administrator );
 		$this->assertTrue( $plugins->can_activate_plugins() );
-		$this->assertTrue( $core->can_switch_themes() );
+		$this->assertTrue( $themes->can_switch_themes() );
 		$this->assertTrue( $core->can_list_users() );
 		$this->assertTrue( $core->can_manage_options() );
 	}
