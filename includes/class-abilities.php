@@ -67,16 +67,7 @@ final class Abilities {
 	 * @return void
 	 */
 	public function register_abilities() {
-		if ( ! function_exists( 'wp_register_ability' ) ) {
-			return;
-		}
-
-		$this->register_user_create();
-		$this->register_option_update();
-		$this->register_media_delete();
-		$this->register_cron_run();
-		$this->register_cache_flush();
-		$this->register_database_optimize();
+		// Registration moved to focused domain classes; retained for backward compatibility.
 	}
 
 	/**
