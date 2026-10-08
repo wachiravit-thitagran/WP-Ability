@@ -44,6 +44,7 @@ final class Plugin_Abilities {
 		$this->register_plugin_install();
 		$this->register_plugin_install_package();
 		$this->register_plugin_update();
+		$this->register_plugin_auto_updates();
 		$this->register_plugin_discovery();
 		$this->register_plugin_management();
 	}
@@ -200,6 +201,40 @@ final class Plugin_Abilities {
 				'execute_callback'    => array( $this, 'plugin_update_many' ),
 				'permission_callback' => array( $this, 'can_update_plugins' ),
 				'meta'                => $this->meta( false, false, false, true ),
+			)
+		);
+	}
+
+
+	/**
+	 * Register plugin auto-update abilities.
+	 *
+	 * @return void
+	 */
+	private function register_plugin_auto_updates() {
+		wp_register_ability(
+			'wordpress/plugin-enable-auto-update',
+			array(
+				'label'               => __( 'Enable WordPress Plugin Auto-Update', 'wp-ability' ),
+				'description'         => __( 'Enables WordPress Core automatic updates for one installed plugin.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $this->plugin_file_schema(),
+				'execute_callback'    => array( $this, 'plugin_enable_auto_update' ),
+				'permission_callback' => array( $this, 'can_update_plugins' ),
+				'meta'                => $this->meta( false, false, true ),
+			)
+		);
+
+		wp_register_ability(
+			'wordpress/plugin-disable-auto-update',
+			array(
+				'label'               => __( 'Disable WordPress Plugin Auto-Update', 'wp-ability' ),
+				'description'         => __( 'Disables WordPress Core automatic updates for one installed plugin.', 'wp-ability' ),
+				'category'            => 'wordpress-admin',
+				'input_schema'        => $this->plugin_file_schema(),
+				'execute_callback'    => array( $this, 'plugin_disable_auto_update' ),
+				'permission_callback' => array( $this, 'can_update_plugins' ),
+				'meta'                => $this->meta( false, false, true ),
 			)
 		);
 	}
@@ -611,6 +646,74 @@ final class Plugin_Abilities {
 		return array(
 			'plugin_files' => $plugin_files,
 			'results'      => json_decode( wp_json_encode( $result ), true ),
+		);
+	}
+
+
+	/**
+	 * Resolve an installed plugin file for auto-update controls.
+	 *
+	 * @param array $input Ability input.
+	 * @return string|\WP_Error
+	 */
+	private function installed_plugin_file( array $input ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		$plugin_file = plugin_basename( sanitize_text_field( $input['plugin_file'] ) );
+		if ( ! isset( get_plugins()[ $plugin_file ] ) ) {
+			return new \WP_Error( 'wp_ability_plugin_not_found', __( 'Plugin not found.', 'wp-ability' ) );
+		}
+
+		return $plugin_file;
+	}
+
+	/**
+	 * Enable WordPress Core auto-updates for one plugin.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_enable_auto_update( array $input ) {
+		$plugin_file = $this->installed_plugin_file( $input );
+		if ( is_wp_error( $plugin_file ) ) {
+			return $plugin_file;
+		}
+
+		$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+		if ( ! in_array( $plugin_file, $auto_updates, true ) ) {
+			$auto_updates[] = $plugin_file;
+			update_site_option( 'auto_update_plugins', array_values( $auto_updates ) );
+		}
+
+		return array(
+			'plugin_file'         => $plugin_file,
+			'auto_update_enabled' => true,
+		);
+	}
+
+	/**
+	 * Disable WordPress Core auto-updates for one plugin.
+	 *
+	 * @param array $input Ability input.
+	 * @return array|\WP_Error
+	 */
+	public function plugin_disable_auto_update( array $input ) {
+		$plugin_file = $this->installed_plugin_file( $input );
+		if ( is_wp_error( $plugin_file ) ) {
+			return $plugin_file;
+		}
+
+		$auto_updates = array_values(
+			array_diff(
+				(array) get_site_option( 'auto_update_plugins', array() ),
+				array( $plugin_file )
+			)
+		);
+		update_site_option( 'auto_update_plugins', $auto_updates );
+
+		return array(
+			'plugin_file'         => $plugin_file,
+			'auto_update_enabled' => false,
 		);
 	}
 
